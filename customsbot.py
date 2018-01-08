@@ -1,11 +1,11 @@
 import discord
 import asyncio
 import datetime
+import random
 
 #TODO: Fix timers so that they're countdowns to 5 minutes from the time the command is sent, not repeated second gaps.
 # Slows down when multiple commands are used otherwise.
 #TODO: Add a remove X message(s) command, since non-mods cant delete the bot's messages.
-#TODO: Randomly select in the case of tied emoji votes
 
 client = discord.Client()
 
@@ -31,11 +31,11 @@ async def on_message(message):
             await client.send_message(message_channel, content=error_message)
 
 def get_custom_games():
-    #customs_hosters = 382550498533703680  # bot-testing in my server
-    #customs_channel = client.get_channel(str(customs_hosters))  # Test in the same channel.
+    customs_hosters = client.get_channel(str(382550498533703680))  # bot-testing in my server
+    customs_channel = customs_hosters  # Test in the same channel.
 
-    customs_hosters = client.get_channel(str(375276183777968130))  # Live
-    customs_channel = client.get_channel(str(317770788524523531))  # Live
+    #customs_hosters = client.get_channel(str(375276183777968130))  # Live
+    #customs_channel = client.get_channel(str(317770788524523531))  # Live
 
     channels = {'hosters': customs_hosters, 'games': customs_channel}
 
@@ -83,7 +83,7 @@ async def squad_vote(command_message):
     customs_channel = get_custom_games()
 
     squad_vote_message = "Please vote on squad size for the next game:\nTimer: {}"
-    default_message = squad_vote_message.format("03:00")
+    default_message = squad_vote_message.format("00:05")
     
     sent_squad_message = await client.send_message(customs_channel['games'], content= default_message)
 
@@ -98,7 +98,7 @@ async def squad_vote(command_message):
     message_channel = command_message.channel
     await client.send_message(message_channel, "Squad size vote successfully posted.")
 
-    countdown_timer = datetime.timedelta(seconds=180)
+    countdown_timer = datetime.timedelta(seconds=5)
     countdown_timer_string = get_countdown_string(countdown_timer)
 
     while countdown_timer_string != "00:00":
@@ -127,8 +127,13 @@ def most_reactions(message):
         reaction_count.append(message_reaction.count)
 
     max_emoji = [reaction_emojis[i] for i,x in enumerate(reaction_count) if x == max(reaction_count)]
+    num_emojis = len(max_emoji)
 
-    return max_emoji[0]
+    if num_emojis == 1:
+        return max_emoji[0]
+    else:
+        i = random.randint(0,num_emojis-1)
+        return max_emoji[i]
 
 async def region_vote(command_message):
     regions = [
