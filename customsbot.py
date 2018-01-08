@@ -5,7 +5,6 @@ import random
 
 #TODO: Fix timers so that they're countdowns to 5 minutes from the time the command is sent, not repeated second gaps.
 # Slows down when multiple commands are used otherwise.
-#TODO: Add a remove X message(s) command, since non-mods cant delete the bot's messages.
 
 client = discord.Client()
 
