@@ -290,6 +290,7 @@ async def command_list(command_message):
     \n`regionvote` - Post a vote for the region for this session's custom games.
     \n`password <password> <minutes>` - Post a countdown to the <password> release of <minutes> minutes.
     \n`setvoicelimit` - Change all voice channel sizes.
+    \n`clear <number>` - Remove <number> of CustomsBot messages from #custom-games. `clear all` will remove all CustomsBot messages.
     '''
     em = discord.Embed(title="CustomsBot commands", description= list_of_commands)
 
