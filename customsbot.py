@@ -97,22 +97,22 @@ async def squad_vote(command_message):
     message_channel = command_message.channel
     await client.send_message(message_channel, "Squad size vote successfully posted.")
 
-    countdown_timer = datetime.timedelta(seconds=180)
-    countdown_timer_string = get_countdown_string(countdown_timer)
+    time_to_post = datetime.datetime.now() + datetime.timedelta(seconds=180)
 
-    while countdown_timer_string != "00:00":
-        countdown_timer = countdown_timer - datetime.timedelta(seconds=1)
+    while datetime.datetime.now() < time_to_post:
+        countdown_timer = time_to_post - datetime.datetime.now()
         countdown_timer_string = get_countdown_string(countdown_timer)
         await asyncio.sleep(1)
         new_message = squad_vote_message.format(countdown_timer_string)
         await client.edit_message(sent_squad_message, new_message)
 
     sent_squad_message = await client.get_message(customs_channel['games'], sent_squad_message.id)
+    await client.clear_reactions(sent_squad_message)
+
     squad_selected = most_reactions(sent_squad_message)
 
     squad_result = squad_selected + "P Squads"
 
-    await client.clear_reactions(sent_squad_message)
     squad_message_finished = "Squad size vote over. Result: {}".format(squad_result)
     await client.edit_message(sent_squad_message, squad_message_finished)
 
@@ -158,29 +158,28 @@ async def region_vote(command_message):
     message_channel = command_message.channel
     await client.send_message(message_channel, "Region vote successfully posted.")
 
-    countdown_timer = datetime.timedelta(seconds=180)
-    countdown_timer_string = get_countdown_string(countdown_timer)
+    time_to_post = datetime.datetime.now() + datetime.timedelta(seconds=180)
 
-    while countdown_timer_string != "00:00":
-        countdown_timer = countdown_timer - datetime.timedelta(seconds=1)
+    while datetime.datetime.now() < time_to_post:
+        countdown_timer = time_to_post - datetime.datetime.now()
         countdown_timer_string = get_countdown_string(countdown_timer)
         await asyncio.sleep(1)
         new_message = region_vote_message.format(countdown_timer_string)
         await client.edit_message(sent_region_message, new_message)
 
     sent_region_message = await client.get_message(customs_channel['games'], sent_region_message.id)
+    await client.clear_reactions(sent_region_message)
     region_selected = most_reactions(sent_region_message)
 
     region_result = region_selected
 
-    await client.clear_reactions(sent_region_message)
     region_message_finished = "Region vote over. Result: {}".format(region_result)
     await client.edit_message(sent_region_message, region_message_finished)
 
 def get_countdown_string(timedelta_object):
     countdown_timer_split = str(timedelta_object).split(":")
     countdown_timer_string = ":".join(countdown_timer_split[1:])
-    return countdown_timer_string
+    return countdown_timer_string.split(".")[0]  # Without decimal
 
 async def password_countdown(command_message):
     split_message = command_message.content.split(" ")
@@ -199,7 +198,8 @@ async def password_countdown(command_message):
         num_seconds = 300
     customs_channel = get_custom_games()
 
-    countdown_timer = datetime.timedelta(seconds=num_seconds)
+    time_to_post = datetime.datetime.now() + datetime.timedelta(seconds=180)
+    countdown_timer = time_to_post - datetime.datetime.now()
     countdown_timer_string = get_countdown_string(countdown_timer)
 
     template_string = "Server name: PUBG Reddit\nPassword: {}"
@@ -215,8 +215,8 @@ async def password_countdown(command_message):
     for channel_name in [mods_channel, sssc_channel]:
         await client.send_message(channel_name, result_string)
 
-    while countdown_timer_string != "00:00":
-        countdown_timer = countdown_timer - datetime.timedelta(seconds=1)
+    while datetime.datetime.now() < time_to_post:
+        countdown_timer = time_to_post - datetime.datetime.now()
         countdown_timer_string = get_countdown_string(countdown_timer)
         await asyncio.sleep(1)
         new_message = template_string.format("[" + countdown_timer_string + "]")
