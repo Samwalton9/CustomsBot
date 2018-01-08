@@ -31,11 +31,11 @@ async def on_message(message):
             await client.send_message(message_channel, content=error_message)
 
 def get_custom_games():
-    #customs_hosters = client.get_channel(str(382550498533703680))  # bot-testing in my server
-    #customs_channel = customs_hosters  # Test in the same channel.
+    customs_hosters = client.get_channel(str(382550498533703680))  # bot-testing in my server
+    customs_channel = customs_hosters  # Test in the same channel.
 
-    customs_hosters = client.get_channel(str(375276183777968130))  # Live
-    customs_channel = client.get_channel(str(317770788524523531))  # Live
+    #customs_hosters = client.get_channel(str(375276183777968130))  # Live
+    #customs_channel = client.get_channel(str(317770788524523531))  # Live
 
     channels = {'hosters': customs_hosters, 'games': customs_channel}
 
@@ -251,6 +251,39 @@ async def set_voice_limit(command_message=None, user_limit=None):
 
     await client.send_message(customs_channel['hosters'], voice_limit_message)
 
+async def remove_messages(command_message):
+    message_split = command_message.content.split(" ")
+    message_length = len(message_split)
+    num_messages = message_split[1]
+
+    if message_length != 2:
+        return "Incorrect number of arguments given."
+    if message_length != 'all':
+        try:
+            num_messages = int(num_messages)
+        except ValueError:
+            return "Error: Please use an integer to denote the number of messages to clear."
+    
+    customs_channel = get_custom_games()
+
+    message_count = 0
+    messages_to_remove = []
+    async for message in client.logs_from(customs_channel['games']):
+        if message.author.id == str(399360578956689409):
+            if num_messages == 'all':
+                messages_to_remove.append(message)
+            else:
+                messages_to_remove.append(message)
+                message_count += 1
+                if message_count == num_messages:
+                    break
+
+    for customsbot_message in messages_to_remove:
+        await client.delete_message(customsbot_message)
+
+    confirmation_text = "Removed {} CustomsBot messages from #custom-games.".format(num_messages)
+    await client.send_message(command_message.channel, confirmation_text)
+
 async def command_list(command_message):
     command_channel = command_message.channel
     list_of_commands = '''
@@ -270,7 +303,8 @@ command_list = {
     'regionvote': region_vote,
     'rv': region_vote,
     'password': password_countdown,
-    'setvoicelimit': set_voice_limit
+    'setvoicelimit': set_voice_limit,
+    'clear': remove_messages
 }
 
 with open('bot_token') as f:
