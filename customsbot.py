@@ -31,11 +31,11 @@ async def on_message(message):
             await client.send_message(message_channel, content=error_message)
 
 def get_custom_games():
-    customs_hosters = client.get_channel(str(382550498533703680))  # bot-testing in my server
-    customs_channel = customs_hosters  # Test in the same channel.
+    #customs_hosters = client.get_channel(str(382550498533703680))  # bot-testing in my server
+    #customs_channel = customs_hosters  # Test in the same channel.
 
-    #customs_hosters = client.get_channel(str(375276183777968130))  # Live
-    #customs_channel = client.get_channel(str(317770788524523531))  # Live
+    customs_hosters = client.get_channel(str(375276183777968130))  # Live
+    customs_channel = client.get_channel(str(317770788524523531))  # Live
 
     channels = {'hosters': customs_hosters, 'games': customs_channel}
 
@@ -83,7 +83,7 @@ async def squad_vote(command_message):
     customs_channel = get_custom_games()
 
     squad_vote_message = "Please vote on squad size for the next game:\nTimer: {}"
-    default_message = squad_vote_message.format("00:05")
+    default_message = squad_vote_message.format("03:00")
     
     sent_squad_message = await client.send_message(customs_channel['games'], content= default_message)
 
@@ -98,7 +98,7 @@ async def squad_vote(command_message):
     message_channel = command_message.channel
     await client.send_message(message_channel, "Squad size vote successfully posted.")
 
-    countdown_timer = datetime.timedelta(seconds=5)
+    countdown_timer = datetime.timedelta(seconds=180)
     countdown_timer_string = get_countdown_string(countdown_timer)
 
     while countdown_timer_string != "00:00":
