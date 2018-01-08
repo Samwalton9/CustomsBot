@@ -254,9 +254,10 @@ async def set_voice_limit(command_message=None, user_limit=None):
 async def command_list(command_message):
     command_channel = command_message.channel
     list_of_commands = '''
-    `squadvote <squad size 1> <squad size 2> ...` - Post a vote for squad size for the next game, defaults to 1, 2, 4, and 8. `squadvote all` will do every size between 1 and 10.
-    `regionvote` - Post a vote for the region for this session's custom games.
-    `password <password> <minutes>` - Post a countdown to the password release of <minutes> minutes. 
+    `squadvote <squad size 1> <squad size 2> ...` - Post a vote for squad size for the next game, defaults to 1, 2, 4, and 8. `squadvote all` will do every size between 1 and 10. Automatically changes voice channel sizes to winning vote.
+    \n`regionvote` - Post a vote for the region for this session's custom games.
+    \n`password <password> <minutes>` - Post a countdown to the <password> release of <minutes> minutes.
+    \n`setvoicelimit` - Change all voice channel sizes.
     '''
     em = discord.Embed(title="CustomsBot commands", description= list_of_commands)
 
