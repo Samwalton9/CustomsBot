@@ -155,6 +155,9 @@ async def region_vote(command_message):
         region_emoji_obj = discord.utils.get(client.get_all_emojis(), id=str(region_emoji))
         await client.add_reaction(sent_region_message, region_emoji_obj)
 
+    message_channel = command_message.channel
+    await client.send_message(message_channel, "Region vote successfully posted.")
+
     countdown_timer = datetime.timedelta(seconds=180)
     countdown_timer_string = get_countdown_string(countdown_timer)
 
@@ -257,7 +260,7 @@ async def remove_messages(command_message):
 
     if message_length != 2:
         return "Incorrect number of arguments given."
-    if message_length != 'all':
+    if num_messages != 'all':
         try:
             num_messages = int(num_messages)
         except ValueError:
