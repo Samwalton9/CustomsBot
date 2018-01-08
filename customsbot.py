@@ -6,7 +6,6 @@ import datetime
 # Slows down when multiple commands are used otherwise.
 #TODO: Add a remove X message(s) command, since non-mods cant delete the bot's messages.
 #TODO: Randomly select in the case of tied emoji votes
-#TODO: Post password in mods, then SSSC, then publicly
 
 client = discord.Client()
 
@@ -199,8 +198,15 @@ async def password_countdown(command_message):
     template_string = "Server name: PUBG Reddit\nPassword: {}"
 
     default_text = template_string.format("[" + countdown_timer_string + "]")
+    result_string = template_string.format(password)
 
     countdown_message = await client.send_message(customs_channel['games'], default_text)
+
+    mods_channel = client.get_channel(str(340575221495103498))
+    sssc_channel = client.get_channel(str(340984090109018113))
+    
+    for channel_name in [mods_channel, sssc_channel]:
+        await client.send_message(channel_name, result_string)
 
     while countdown_timer_string != "00:00":
         countdown_timer = countdown_timer - datetime.timedelta(seconds=1)
@@ -209,7 +215,6 @@ async def password_countdown(command_message):
         new_message = template_string.format("[" + countdown_timer_string + "]")
         await client.edit_message(countdown_message, new_message)
 
-    result_string = template_string.format(password)
     await client.edit_message(countdown_message, result_string)
 
 async def set_voice_limit(command_message=None, user_limit=None):
