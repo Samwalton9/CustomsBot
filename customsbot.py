@@ -46,7 +46,6 @@ async def parse_command(message_object):
     primary_command = split_command[0].lower()
     options = split_command[1:]
 
-    args = split_command[1:]
     if primary_command in command_list:
         result = await command_list[primary_command](message_object)
     else:
