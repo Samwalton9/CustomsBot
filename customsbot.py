@@ -43,7 +43,7 @@ async def parse_command(message_object):
     command_channel = message_object.channel
 
     split_command = command_string[1:].split(" ")
-    primary_command = split_command[0]
+    primary_command = split_command[0].lower()
     options = split_command[1:]
 
     args = split_command[1:]
