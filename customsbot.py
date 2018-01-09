@@ -3,9 +3,6 @@ import asyncio
 import datetime
 import random
 
-#TODO: Fix timers so that they're countdowns to 5 minutes from the time the command is sent, not repeated second gaps.
-# Slows down when multiple commands are used otherwise.
-
 client = discord.Client()
 
 @client.event
