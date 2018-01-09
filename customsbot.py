@@ -3,6 +3,8 @@ import asyncio
 import datetime
 import random
 
+# TODO: Log time of command to terminal
+
 client = discord.Client()
 
 @client.event
@@ -49,6 +51,7 @@ async def parse_command(message_object):
     if primary_command in command_list:
         result = await command_list[primary_command](message_object)
     else:
+        print("INCORRECT COMMAND |", primary_command, "|", message_object.author.name)
         result = "Error: That command doesn't exist. To see a list of available commands type $help."
 
     if result:
@@ -90,8 +93,11 @@ async def squad_vote(command_message):
 
         await client.add_reaction(sent_squad_message, emoji)
 
+    await client.send_message(customs_channel['games'], content="@here")
+
     message_channel = command_message.channel
     await client.send_message(message_channel, "Squad size vote successfully posted.")
+    print("SUCCESSFUL COMMAND |", "Squad vote", "|", command_message.author.name)
 
     time_to_post = datetime.datetime.now() + datetime.timedelta(seconds=180)
 
@@ -151,8 +157,11 @@ async def region_vote(command_message):
         region_emoji_obj = discord.utils.get(client.get_all_emojis(), id=str(region_emoji))
         await client.add_reaction(sent_region_message, region_emoji_obj)
 
+    await client.send_message(customs_channel['games'], content="@here")
+
     message_channel = command_message.channel
     await client.send_message(message_channel, "Region vote successfully posted.")
+    print("SUCCESSFUL COMMAND |", "Region vote", "|", command_message.author.name)
 
     time_to_post = datetime.datetime.now() + datetime.timedelta(seconds=180)
 
@@ -194,7 +203,7 @@ async def password_countdown(command_message):
         num_seconds = 300
     customs_channel = get_custom_games()
 
-    time_to_post = datetime.datetime.now() + datetime.timedelta(seconds=180)
+    time_to_post = datetime.datetime.now() + datetime.timedelta(seconds=num_seconds)
     countdown_timer = time_to_post - datetime.datetime.now()
     countdown_timer_string = get_countdown_string(countdown_timer)
 
@@ -210,6 +219,10 @@ async def password_countdown(command_message):
     
     for channel_name in [mods_channel, sssc_channel]:
         await client.send_message(channel_name, result_string)
+        if channel_name == sssc_channel:
+            await client.send_message(channel_name, content="@here")
+
+    print("SUCCESSFUL COMMAND |", "Password", "|", command_message.author.name)
 
     while datetime.datetime.now() < time_to_post:
         countdown_timer = time_to_post - datetime.datetime.now()
@@ -219,6 +232,7 @@ async def password_countdown(command_message):
         await client.edit_message(countdown_message, new_message)
 
     await client.edit_message(countdown_message, result_string)
+    await client.send_message(customs_channel['games'], content="@here")
 
 async def set_voice_limit(command_message=None, user_limit=None):
     if command_message:
@@ -281,6 +295,8 @@ async def remove_messages(command_message):
 
     confirmation_text = "Removed {} CustomsBot messages from #custom-games.".format(num_messages)
     await client.send_message(command_message.channel, confirmation_text)
+
+    print("SUCCESSFUL COMMAND |", "Remove messages ({})".format(num_messages), "|", command_message.author.name)
 
 async def help_list(command_message):
     command_channel = command_message.channel
