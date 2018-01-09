@@ -282,7 +282,7 @@ async def remove_messages(command_message):
     confirmation_text = "Removed {} CustomsBot messages from #custom-games.".format(num_messages)
     await client.send_message(command_message.channel, confirmation_text)
 
-async def command_list(command_message):
+async def help_list(command_message):
     command_channel = command_message.channel
     list_of_commands = '''
     `squadvote <squad size 1> <squad size 2> ...` - Post a vote for squad size for the next game, defaults to 1, 2, 4, and 8. `squadvote all` will do every size between 1 and 10. Automatically changes voice channel sizes to winning vote.
@@ -296,7 +296,7 @@ async def command_list(command_message):
     await client.send_message(command_channel, embed=em)
 
 command_list = {
-    'help': command_list,
+    'help': help_list,
     'squadvote': squad_vote,
     'sqv': squad_vote,
     'regionvote': region_vote,
