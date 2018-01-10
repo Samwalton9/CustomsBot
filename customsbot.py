@@ -3,8 +3,6 @@ import asyncio
 import datetime
 import random
 
-# TODO: Log time of command to terminal
-
 client = discord.Client()
 
 @client.event
@@ -29,15 +27,19 @@ async def on_message(message):
             await client.send_message(message_channel, content=error_message)
 
 def get_custom_games():
-    #customs_hosters = client.get_channel(str(382550498533703680))  # bot-testing in my server
-    #customs_channel = customs_hosters  # Test in the same channel.
-
     customs_hosters = client.get_channel(str(375276183777968130))  # Live
     customs_channel = client.get_channel(str(317770788524523531))  # Live
+
+    if debug:
+        customs_hosters = client.get_channel(str(382550498533703680))  # bot-testing in my server
+        customs_channel = customs_hosters  # Test in the same channel.
 
     channels = {'hosters': customs_hosters, 'games': customs_channel}
 
     return channels
+
+def log_command(message_object, text):
+    print(message_object.timestamp, "| COMMAND |", text, "|", message_object.author.name)
 
 async def parse_command(message_object):
 
@@ -97,7 +99,7 @@ async def squad_vote(command_message):
 
     message_channel = command_message.channel
     await client.send_message(message_channel, "Squad size vote successfully posted.")
-    print("SUCCESSFUL COMMAND |", "Squad vote", "|", command_message.author.name)
+    log_command(command_message, "Squad vote")
 
     time_to_post = datetime.datetime.now() + datetime.timedelta(seconds=180)
 
@@ -161,7 +163,7 @@ async def region_vote(command_message):
 
     message_channel = command_message.channel
     await client.send_message(message_channel, "Region vote successfully posted.")
-    print("SUCCESSFUL COMMAND |", "Region vote", "|", command_message.author.name)
+    log_command(command_message, "Region vote")
 
     time_to_post = datetime.datetime.now() + datetime.timedelta(seconds=180)
 
@@ -217,12 +219,13 @@ async def password_countdown(command_message):
     mods_channel = client.get_channel(str(340575221495103498))
     sssc_channel = client.get_channel(str(340984090109018113))
     
-    for channel_name in [mods_channel, sssc_channel]:
-        await client.send_message(channel_name, result_string)
-        if channel_name == sssc_channel:
-            await client.send_message(channel_name, content="@here")
+    if not debug:
+        for channel_name in [mods_channel, sssc_channel]:
+            await client.send_message(channel_name, result_string)
+            if channel_name == sssc_channel:
+                await client.send_message(channel_name, content="@here")
 
-    print("SUCCESSFUL COMMAND |", "Password", "|", command_message.author.name)
+    log_command(command_message, "Password")
 
     while datetime.datetime.now() < time_to_post:
         countdown_timer = time_to_post - datetime.datetime.now()
@@ -296,7 +299,7 @@ async def remove_messages(command_message):
     confirmation_text = "Removed {} CustomsBot messages from #custom-games.".format(num_messages)
     await client.send_message(command_message.channel, confirmation_text)
 
-    print("SUCCESSFUL COMMAND |", "Remove messages ({})".format(num_messages), "|", command_message.author.name)
+    log_command(command_message, "Remove messages ({})".format(num_messages))
 
 async def help_list(command_message):
     command_channel = command_message.channel
@@ -321,6 +324,8 @@ command_list = {
     'setvoicelimit': set_voice_limit,
     'clear': remove_messages
 }
+
+debug = True
 
 with open('bot_token') as f:
     token = f.readline().strip()
