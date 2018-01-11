@@ -5,28 +5,6 @@ import random
 
 client = discord.Client()
 
-@client.event
-async def on_ready():
-    print('Logged in as', client.user.name)
-    print('\nLogged in to the following servers:')
-    for server in client.servers:
-        print(server.name)
-    print('-----')
-
-@client.event
-async def on_message(message):
-    """Check every message for a command, trust any from #custom-hosters"""
-    is_command = message.content.startswith('$')
-
-    if is_command:
-        customs_channel = get_custom_games()
-        message_channel = message.channel
-        if message_channel == customs_channel['hosters']:
-            await parse_command(message)
-        else:
-            error_message = "Error: You must be in the #custom-hosters channel to do that."
-            await client.send_message(message_channel, content=error_message)
-
 def get_custom_games():
     """Returns a dict containing #custom-games and #custom-hosters objects"""
     customs_hosters = client.get_channel(str(375276183777968130))
@@ -43,6 +21,81 @@ def get_custom_games():
 def log_command(message_object, text):
     """Whenever a command is sent, log it to the terminal"""
     print(message_object.timestamp, "| COMMAND |", text, "|", message_object.author.name)
+
+def most_reactions(message):
+    """
+    Given a message, determine which reaction emoji received the
+    most votes. Breaks ties with a random choice.
+    """
+    message_reactions = message.reactions
+    reaction_emojis, reaction_count = [], []
+    for message_reaction in message_reactions:
+        reaction_emojis.append(message_reaction.emoji)
+        reaction_count.append(message_reaction.count)
+
+    max_emoji = [reaction_emojis[i] for i,x in enumerate(reaction_count) if x == max(reaction_count)]
+    num_emojis = len(max_emoji)
+
+    if num_emojis == 1:
+        return max_emoji[0]
+    else:
+        i = random.randint(0,num_emojis-1)
+        return max_emoji[i]
+
+def get_countdown_string(timedelta_object):
+    """Given a timedelta object, returns a mm:ss time string"""
+    countdown_timer_split = str(timedelta_object).split(":")
+    countdown_timer_string = ":".join(countdown_timer_split[1:])
+    return countdown_timer_string.split(".")[0]  # Without decimal
+
+@client.event
+async def on_ready():
+    print('Logged in as', client.user.name)
+    print('\nLogged in to the following servers:')
+    for server in client.servers:
+        print(server.name)
+    print('-----')
+    await client.change_presence(game=discord.Game(name="Custom games"))
+
+@client.event
+async def on_message(message):
+    """Check every message for a command, trust any from #custom-hosters"""
+    is_command = message.content.startswith('$')
+    is_pm = message.channel.is_private
+
+    if is_command:
+        customs_channel = get_custom_games()
+        message_channel = message.channel
+        if message_channel == customs_channel['hosters']:
+            await parse_command(message)
+        else:
+            error_message = "Error: You must be in the #custom-hosters channel to do that."
+            await client.send_message(message_channel, content=error_message)
+
+    if is_pm and "CustomsBot" not in message.author.name:
+        pm_response = ("Hi! We run custom games multiple times every week,"
+                       " and I would be happy to give you more information."
+                       "\n\nIf you don't yet have the 'Custom' role, which "
+                       "allows you to see #custom-games and "
+                       "#custom-chat-lfg, please respond with `role` and"
+                       " I'll add it to your account.\n\n"
+                       "If you would like a link to the schedule, please "
+                       "respond with `schedule`.\n\n"
+                       "To receive a link to the Twitch stream, please "
+                       "reply `twitch`.\n\n"
+                       "If you want to sign up as a hoster or suggest a "
+                       "new game mode, please reply `forms`."
+                      )
+
+        num_pms = 0
+        async for pm_message in client.logs_from(message.channel, limit=20):
+            num_pms += 1
+
+        if num_pms > 1:
+            await parse_pm(message)
+        else:
+            print("Sent instructions to", message.author.name)
+            await client.send_message(message.channel, content=pm_response)        
 
 async def parse_command(message_object):
     """
@@ -64,6 +117,65 @@ async def parse_command(message_object):
 
     if result:
         await client.send_message(command_channel, content=result)
+
+async def parse_pm(message_object):
+    pm_commands = ['role', 'schedule', 'twitch', 'forms']
+    pm_channel = message_object.channel
+    sent_command = message_object.content.lower()
+
+    if sent_command in pm_commands:
+        if sent_command == 'role':
+            pubg_server = client.get_server("289466476187090944")
+            pubg_member = pubg_server.get_member(message_object.author.id)
+            member_roles = pubg_member.roles
+            custom_role_id = "318030585647857665"
+
+            has_role = False
+            for role in member_roles:
+                if role.id == custom_role_id:
+                    has_role = True
+                    break
+
+            if has_role:
+                pm_text = ("You already have the 'Custom' role and should be able to see "
+                           "#custom-games and #custom-chat-lfg already.")
+            else:
+                custom_role = discord.utils.get(pubg_server.roles, id=custom_role_id)
+                await client.add_roles(pubg_member, custom_role)
+                pm_text = ("Added the Custom role successfully. You should now be able to "
+                           "see #custom-games and #custom-chat-lfg.")
+        if sent_command == 'schedule':
+            pm_text = ("A full schedule of upcoming games can be found at <https://goo.gl/TQ8GoH>"
+                       "\n\nThe schedule should be shown in your time zone, but you can verify "
+                       "this by checking the menu in the top right."
+                       "\n\n*If the schedule appears to be blank, we may not have any games "
+                       "currently planned. Check back soon to see if we've added any!*")
+        if sent_command == 'twitch':
+            pm_text = ("All our games are streamed over at our Twitch channel: "
+                       "<https://twitch.tv/pubgreddit>\n\n"
+                       "Twitch subscribers get access to #super-secret-sub-club, "
+                       "where passwords for custom games are posted before being "
+                       "announced publicly. Any funds raised through subscriptions "
+                       "will go into future tournaments! Once you've subscribed "
+                       "just make sure your Twitch account is linked to your "
+                       "Discord account and you should get the role!")
+        if sent_command == 'forms':
+            pm_text = ("The game modes we play are usually taken from this list, "
+                       "which we continue to expand with new modes: "
+                       "<https://goo.gl/JU1ds1> You can suggest new modes using "
+                       "this form: <https://goo.gl/forms/b8AZGpSQpvkj1suj1>\n\n"
+                       "If you have experience streaming games on Twitch "
+                       "(with a solid internet connection and a PC good enough "
+                       "to handle it), and have the availability to host at "
+                       "least approximately once per week, please let us know "
+                       "by filling out this form: <https://goo.gl/forms/H1QrCeS2KZ1JB8IE3>")
+
+        print("Successfully parsed command from", message_object.author.name + "#" + message_object.author.discriminator, "|", sent_command)
+        await client.send_message(pm_channel, content=pm_text)
+    else:
+        print("Failed to parse command from", message_object.author.name + "#" + message_object.author.discriminator, "|", sent_command)
+        error_message = "Sorry, I don't recognise that command."
+        await client.send_message(pm_channel, content=error_message)
 
 async def squad_vote(command_message):
     """
@@ -138,26 +250,6 @@ async def squad_vote(command_message):
 
     await set_voice_limit(user_limit=squad_selected)
 
-def most_reactions(message):
-    """
-    Given a message, determine which reaction emoji received the
-    most votes. Breaks ties with a random choice.
-    """
-    message_reactions = message.reactions
-    reaction_emojis, reaction_count = [], []
-    for message_reaction in message_reactions:
-        reaction_emojis.append(message_reaction.emoji)
-        reaction_count.append(message_reaction.count)
-
-    max_emoji = [reaction_emojis[i] for i,x in enumerate(reaction_count) if x == max(reaction_count)]
-    num_emojis = len(max_emoji)
-
-    if num_emojis == 1:
-        return max_emoji[0]
-    else:
-        i = random.randint(0,num_emojis-1)
-        return max_emoji[i]
-
 async def region_vote(command_message):
     """
     Starts a vote on region to host on.
@@ -208,12 +300,6 @@ async def region_vote(command_message):
 
     region_message_finished = "Region vote over. Result: {}".format(region_result)
     await client.edit_message(sent_region_message, region_message_finished)
-
-def get_countdown_string(timedelta_object):
-    """Given a timedelta object, returns a mm:ss time string"""
-    countdown_timer_split = str(timedelta_object).split(":")
-    countdown_timer_string = ":".join(countdown_timer_split[1:])
-    return countdown_timer_string.split(".")[0]  # Without decimal
 
 async def password_countdown(command_message):
     """
@@ -381,9 +467,14 @@ command_list = {
 # Debugging suppresses #mods and #super-secret-sub-club messages and
 # treats #bot-testing in SamWalton's Discord server as both #custom-games
 # and #custom-hosters.
-debug = True
+debug = False
 
-with open('bot_token') as f:
+if debug == True:
+    token_file = 'test_bot_token'
+else:
+    token_file = 'bot_token'
+
+with open(token_file) as f:
     token = f.readline().strip()
 
 client.run(token)
