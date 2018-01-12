@@ -3,6 +3,8 @@ import asyncio
 import datetime
 import random
 
+# TODO: When someone receives the custom role, PM them information.
+
 client = discord.Client()
 
 def get_custom_games():
@@ -55,7 +57,7 @@ async def on_ready():
     for server in client.servers:
         print(server.name)
     print('-----')
-    await client.change_presence(game=discord.Game(name="Custom games"))
+    await client.change_presence(game=discord.Game(name="DM for info"))
 
 @client.event
 async def on_message(message):
@@ -122,6 +124,7 @@ async def parse_pm(message_object):
     pm_commands = ['role', 'schedule', 'twitch', 'forms']
     pm_channel = message_object.channel
     sent_command = message_object.content.lower()
+    full_username = message_object.author.name + "#" + message_object.author.discriminator
 
     if sent_command in pm_commands:
         if sent_command == 'role':
@@ -142,6 +145,7 @@ async def parse_pm(message_object):
             else:
                 custom_role = discord.utils.get(pubg_server.roles, id=custom_role_id)
                 await client.add_roles(pubg_member, custom_role)
+                print("Gave Custom role to", full_username)
                 pm_text = ("Added the Custom role successfully. You should now be able to "
                            "see #custom-games and #custom-chat-lfg.")
         if sent_command == 'schedule':
@@ -170,10 +174,10 @@ async def parse_pm(message_object):
                        "least approximately once per week, please let us know "
                        "by filling out this form: <https://goo.gl/forms/H1QrCeS2KZ1JB8IE3>")
 
-        print("Successfully parsed command from", message_object.author.name + "#" + message_object.author.discriminator, "|", sent_command)
+        print(message_object.timestamp, "| Successfully parsed command from", full_username, "|", sent_command)
         await client.send_message(pm_channel, content=pm_text)
     else:
-        print("Failed to parse command from", message_object.author.name + "#" + message_object.author.discriminator, "|", sent_command)
+        print(message_object.timestamp, "| Failed to parse command from", full_username, "|", sent_command)
         error_message = "Sorry, I don't recognise that command."
         await client.send_message(pm_channel, content=error_message)
 
@@ -444,7 +448,7 @@ async def help_list(command_message):
     list_of_commands = '''
     `squadvote <squad size 1> <squad size 2> ...` - Post a vote for squad size for the next game, defaults to 1, 2, 4, and 8. `squadvote all` will do every size between 1 and 10. Automatically changes voice channel sizes to winning vote.
     \n`regionvote` - Post a vote for the region for this session's custom games.
-    \n`password <password> <minutes>` - Post a countdown to the <password> release of <minutes> minutes.
+    \n`password <password> <minutes>` - Post a countdown to the <password> release of <minutes> minutes. Automatically posts password to #mods and #super-secret-sub-club.
     \n`setvoicelimit` - Change all voice channel sizes.
     \n`clear <number>` - Remove <number> of CustomsBot messages from #custom-games. `clear all` will remove all CustomsBot messages.
     '''
