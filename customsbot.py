@@ -224,7 +224,7 @@ async def squad_vote(command_message):
 
         await client.add_reaction(sent_squad_message, emoji)
 
-    await client.send_message(customs_channel['games'], content="@here")
+    here_ping = await client.send_message(customs_channel['games'], content="@here")
 
     message_channel = command_message.channel
     await client.send_message(message_channel, "Squad size vote successfully posted.")
@@ -248,6 +248,8 @@ async def squad_vote(command_message):
 
     squad_message_finished = "Squad size vote over. Result: {}".format(squad_result)
     await client.edit_message(sent_squad_message, squad_message_finished)
+
+    await client.delete_message(here_ping)
 
     await set_voice_limit(user_limit=squad_selected)
 
@@ -278,7 +280,7 @@ async def region_vote(command_message):
         region_emoji_obj = discord.utils.get(client.get_all_emojis(), id=region_emoji)
         await client.add_reaction(sent_region_message, region_emoji_obj)
 
-    await client.send_message(customs_channel['games'], content="@here")
+    here_ping = await client.send_message(customs_channel['games'], content="@here")
 
     message_channel = command_message.channel
     await client.send_message(message_channel, "Region vote successfully posted.")
@@ -300,6 +302,9 @@ async def region_vote(command_message):
     region_result = region_selected
 
     region_message_finished = "Region vote over. Result: {}".format(region_result)
+
+    await client.delete_message(here_ping)
+
     await client.edit_message(sent_region_message, region_message_finished)
 
 async def password_countdown(command_message):
