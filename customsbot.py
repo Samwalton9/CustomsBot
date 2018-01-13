@@ -4,6 +4,7 @@ import datetime
 import random
 
 # TODO: When someone receives the custom role, PM them information.
+# TODO: Remove @here ping message after vote is over
 
 client = discord.Client()
 
@@ -66,7 +67,7 @@ async def on_message(message):
 
     if is_command:
         customs_channel = get_custom_games()
-        if message_channel == customs_channel['hosters']:
+        if message.channel == customs_channel['hosters']:
             await parse_command(message)
 
     is_pm = message.channel.is_private
@@ -229,7 +230,7 @@ async def squad_vote(command_message):
     await client.send_message(message_channel, "Squad size vote successfully posted.")
     log_command(command_message, "Squad vote")
 
-    time_to_post = datetime.datetime.now() + datetime.timedelta(seconds=180)
+    time_to_post = datetime.datetime.now() + datetime.timedelta(seconds=120)
 
     while datetime.datetime.now() < time_to_post:
         countdown_timer = time_to_post - datetime.datetime.now()
@@ -283,7 +284,7 @@ async def region_vote(command_message):
     await client.send_message(message_channel, "Region vote successfully posted.")
     log_command(command_message, "Region vote")
 
-    time_to_post = datetime.datetime.now() + datetime.timedelta(seconds=180)
+    time_to_post = datetime.datetime.now() + datetime.timedelta(seconds=120)
 
     while datetime.datetime.now() < time_to_post:
         countdown_timer = time_to_post - datetime.datetime.now()
