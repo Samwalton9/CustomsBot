@@ -4,7 +4,6 @@ import datetime
 import random
 
 # TODO: When someone receives the custom role, PM them information.
-# TODO: Remove @here ping message after vote is over
 
 client = discord.Client()
 
