@@ -4,16 +4,17 @@ import datetime
 import random
 
 # TODO: When someone receives the custom role, PM them information.
+# TODO: Only even respond to commands in #custom-hosters
 
 client = discord.Client()
 
 def get_custom_games():
     """Returns a dict containing #custom-games and #custom-hosters objects"""
-    customs_hosters = client.get_channel(str(375276183777968130))
-    customs_channel = client.get_channel(str(317770788524523531))
+    customs_hosters = client.get_channel('375276183777968130')
+    customs_channel = client.get_channel('317770788524523531')
 
     if debug:
-        customs_hosters = client.get_channel(str(382550498533703680))  # bot-testing in my server
+        customs_hosters = client.get_channel('382550498533703680')  # bot-testing in my server
         customs_channel = customs_hosters  # Test in the same channel.
 
     channels = {'hosters': customs_hosters, 'games': customs_channel}
@@ -29,9 +30,8 @@ def most_reactions(message):
     Given a message, determine which reaction emoji received the
     most votes. Breaks ties with a random choice.
     """
-    message_reactions = message.reactions
     reaction_emojis, reaction_count = [], []
-    for message_reaction in message_reactions:
+    for message_reaction in message.reactions:
         reaction_emojis.append(message_reaction.emoji)
         reaction_count.append(message_reaction.count)
 
@@ -52,27 +52,25 @@ def get_countdown_string(timedelta_object):
 
 @client.event
 async def on_ready():
+    await client.change_presence(game=discord.Game(name="DM for info"))
+
     print('Logged in as', client.user.name)
     print('\nLogged in to the following servers:')
     for server in client.servers:
         print(server.name)
     print('-----')
-    await client.change_presence(game=discord.Game(name="DM for info"))
 
 @client.event
 async def on_message(message):
     """Check every message for a command, trust any from #custom-hosters"""
     is_command = message.content.startswith('$')
-    is_pm = message.channel.is_private
 
     if is_command:
         customs_channel = get_custom_games()
-        message_channel = message.channel
         if message_channel == customs_channel['hosters']:
             await parse_command(message)
-        else:
-            error_message = "Error: You must be in the #custom-hosters channel to do that."
-            await client.send_message(message_channel, content=error_message)
+
+    is_pm = message.channel.is_private
 
     if is_pm and "CustomsBot" not in message.author.name:
         pm_response = ("Hi! We run custom games multiple times every week,"
@@ -105,7 +103,6 @@ async def parse_command(message_object):
     the relevant function.
     """
     command_string = message_object.content
-    command_channel = message_object.channel
 
     split_command = command_string[1:].split(" ")
     primary_command = split_command[0].lower()
@@ -118,7 +115,7 @@ async def parse_command(message_object):
         result = "Error: That command doesn't exist. To see a list of available commands type $help."
 
     if result:
-        await client.send_message(command_channel, content=result)
+        await client.send_message(message_object.channel, content=result)
 
 async def parse_pm(message_object):
     pm_commands = ['role', 'schedule', 'twitch', 'forms']
@@ -262,13 +259,13 @@ async def region_vote(command_message):
     and determines the winner.
     """
     region_emoji_ids = [
-               333366981959090186,  # Asia
-               333366950455672833,  # EU
-               379707501282590720,  # KJP
-               333366997729411082,  # NA
-               333366933657223168,  # OCE
-               333366961792876544,  # SA
-               333366971586445313,  # SEA
+               '333366981959090186',  # Asia
+               '333366950455672833',  # EU
+               '379707501282590720',  # KJP
+               '333366997729411082',  # NA
+               '333366933657223168',  # OCE
+               '333366961792876544',  # SA
+               '333366971586445313',  # SEA
                ]
 
     customs_channel = get_custom_games()
@@ -278,7 +275,7 @@ async def region_vote(command_message):
     sent_region_message = await client.send_message(customs_channel['games'], content= default_region_message)
 
     for region_emoji in region_emoji_ids:
-        region_emoji_obj = discord.utils.get(client.get_all_emojis(), id=str(region_emoji))
+        region_emoji_obj = discord.utils.get(client.get_all_emojis(), id=region_emoji)
         await client.add_reaction(sent_region_message, region_emoji_obj)
 
     await client.send_message(customs_channel['games'], content="@here")
@@ -341,8 +338,8 @@ async def password_countdown(command_message):
 
     countdown_message = await client.send_message(customs_channel['games'], default_text)
 
-    mods_channel = client.get_channel(str(340575221495103498))
-    sssc_channel = client.get_channel(str(340984090109018113))
+    mods_channel = client.get_channel('340575221495103498')
+    sssc_channel = client.get_channel('340984090109018113')
     
     if not debug:
         for channel_name in [mods_channel, sssc_channel]:
@@ -425,7 +422,7 @@ async def remove_messages(command_message):
     # Defaults to only retrieving 100 messages from #custom-games.
     # Has the potential to cause an issue, but should rarely ever do so.
     async for message in client.logs_from(customs_channel['games']):
-        if message.author.id == str(399360578956689409):
+        if message.author.id == '399360578956689409':
             if num_messages == 'all':
                 messages_to_remove.append(message)
             else:
