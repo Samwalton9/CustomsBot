@@ -4,7 +4,6 @@ import datetime
 import random
 
 # TODO: When someone receives the custom role, PM them information.
-# TODO: Only even respond to commands in #custom-hosters
 
 client = discord.Client()
 
