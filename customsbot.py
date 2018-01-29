@@ -5,6 +5,8 @@ import random
 
 # TODO: When someone receives the custom role, PM them information.
 
+#TODO: Fix initial timer, says 3:00
+
 client = discord.Client()
 
 def get_custom_games():
@@ -275,9 +277,13 @@ async def region_vote(command_message):
     default_region_message = region_vote_message.format("03:00")
     sent_region_message = await client.send_message(customs_channel['games'], content= default_region_message)
 
-    for region_emoji in region_emoji_ids:
-        region_emoji_obj = discord.utils.get(client.get_all_emojis(), id=region_emoji)
-        await client.add_reaction(sent_region_message, region_emoji_obj)
+    if debug:
+        debug_text = "[Regions added]"
+        await client.send_message(customs_channel['games'], debug_text)
+    else:
+        for region_emoji in region_emoji_ids:
+            region_emoji_obj = discord.utils.get(client.get_all_emojis(), id=region_emoji)
+            await client.add_reaction(sent_region_message, region_emoji_obj)
 
     here_ping = await client.send_message(customs_channel['games'], content="@here")
 
@@ -342,14 +348,17 @@ async def password_countdown(command_message):
 
     countdown_message = await client.send_message(customs_channel['games'], default_text)
 
-    mods_channel = client.get_channel('340575221495103498')
-    sssc_channel = client.get_channel('340984090109018113')
+    if debug:
+        mods_channel = client.get_channel('382550498533703680')
+        sssc_channel = client.get_channel('382550498533703680')
+    else:
+        mods_channel = client.get_channel('340575221495103498')
+        sssc_channel = client.get_channel('340984090109018113')
     
-    if not debug:
-        for channel_name in [mods_channel, sssc_channel]:
-            await client.send_message(channel_name, result_string)
-            if channel_name == sssc_channel:
-                await client.send_message(channel_name, content="@here")
+    for channel_name in [mods_channel, sssc_channel]:
+        await client.send_message(channel_name, result_string)
+        if channel_name == sssc_channel:
+            await client.send_message(channel_name, content="@here")
 
     log_command(command_message, "Password")
 
@@ -423,10 +432,15 @@ async def remove_messages(command_message):
     message_count = 0
     messages_to_remove = []
 
+    if debug:
+        bot_id = '400984104960655362'
+    else:
+        bot_id = '399360578956689409'
+
     # Defaults to only retrieving 100 messages from #custom-games.
     # Has the potential to cause an issue, but should rarely ever do so.
     async for message in client.logs_from(customs_channel['games']):
-        if message.author.id == '399360578956689409':
+        if message.author.id == bot_id:
             if num_messages == 'all':
                 messages_to_remove.append(message)
             else:
