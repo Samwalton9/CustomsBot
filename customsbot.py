@@ -128,13 +128,13 @@ async def parse_pm(message_object):
             pubg_member = pubg_server.get_member(message_object.author.id)
             member_roles = pubg_member.roles
             custom_role_id = "318030585647857665"
-
             has_role = False
             for role in member_roles:
                 if role.id == custom_role_id:
                     has_role = True
                     break
-
+                    
+        if not debug:
             if has_role:
                 pm_text = ("You already have the 'Custom' role and should be able to see "
                            "#custom-games and #custom-chat-lfg already.")
@@ -144,6 +144,9 @@ async def parse_pm(message_object):
                 print("Gave Custom role to", full_username)
                 pm_text = ("Added the Custom role successfully. You should now be able to "
                            "see #custom-games and #custom-chat-lfg.")
+        else:
+            print("Customs role assignment in disabled in debug mode")
+            
         if sent_command == 'schedule':
             pm_text = ("A full schedule of upcoming games can be found at <https://goo.gl/TQ8GoH>"
                        "\n\nThe schedule should be shown in your time zone, but you can verify "
