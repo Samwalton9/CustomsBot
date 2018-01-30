@@ -2,10 +2,16 @@ import discord
 import asyncio
 import datetime
 import random
+import os
 
 # TODO: When someone receives the custom role, PM them information.
 
 client = discord.Client()
+
+"""Checks if the logs folder exists, creates it if it isn't."""
+folder_exists = os.path.isdir("logs")
+if not folder_exists:
+        os.mkdir("logs")
 
 def get_custom_games():
     """Returns a dict containing #custom-games and #custom-hosters objects"""
@@ -21,8 +27,13 @@ def get_custom_games():
     return channels
 
 def log_command(message_object, text):
-    """Whenever a command is sent, log it to the terminal"""
-    print(message_object.timestamp, "| COMMAND |", text, "|", message_object.author.name)
+    """Whenever a command is sent, log it to the logfile"""
+    current_folder = os.path.dirname(__file__)
+    file_path = os.path.join(current_folder, 'logs')
+    logfile = os.path.join(file_path, datetime.datetime.now().strftime("%Y%m%d") + ".txt")
+    with open(logfile,"a") as file:
+        log_string = (str(message_object.timestamp) + " | " + text + " | " + message_object.author.name + "#" + message_object.author.discriminator + "\n")
+        file.write(log_string)
 
 def most_reactions(message):
     """
@@ -135,6 +146,7 @@ async def parse_pm(message_object):
                     has_role = True
                     break
 
+        if not debug:
             if has_role:
                 pm_text = ("You already have the 'Custom' role and should be able to see "
                            "#custom-games and #custom-chat-lfg already.")
@@ -144,6 +156,11 @@ async def parse_pm(message_object):
                 print("Gave Custom role to", full_username)
                 pm_text = ("Added the Custom role successfully. You should now be able to "
                            "see #custom-games and #custom-chat-lfg.")
+        else: 
+            print("Role assignment is not available in debug mode.")
+            pm_text = None
+
+
         if sent_command == 'schedule':
             pm_text = ("A full schedule of upcoming games can be found at <https://goo.gl/TQ8GoH>"
                        "\n\nThe schedule should be shown in your time zone, but you can verify "
@@ -171,7 +188,8 @@ async def parse_pm(message_object):
                        "by filling out this form: <https://goo.gl/forms/H1QrCeS2KZ1JB8IE3>")
 
         print(message_object.timestamp, "| Successfully parsed command from", full_username, "|", sent_command)
-        await client.send_message(pm_channel, content=pm_text)
+        if pm_text:
+            await client.send_message(pm_channel, content=pm_text)
     else:
         print(message_object.timestamp, "| Failed to parse command from", full_username, "|", sent_command)
         error_message = "Sorry, I don't recognise that command."
