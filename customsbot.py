@@ -2,12 +2,18 @@ import discord
 import asyncio
 import datetime
 import random
+import os
 
 # TODO: When someone receives the custom role, PM them information.
 
 #TODO: Fix initial timer, says 3:00
 
 client = discord.Client()
+
+"""Checks if the logs folder exists, creates it if it isn't."""
+folder_exists = os.path.isdir("logs")
+if not folder_exists:
+        os.mkdir("logs")
 
 def get_custom_games():
     """Returns a dict containing #custom-games and #custom-hosters objects"""
@@ -23,8 +29,13 @@ def get_custom_games():
     return channels
 
 def log_command(message_object, text):
-    """Whenever a command is sent, log it to the terminal"""
-    print(message_object.timestamp, "| COMMAND |", text, "|", message_object.author.name)
+    """Whenever a command is sent, log it to the logfile"""
+    current_folder = os.path.dirname(__file__)
+    file_path = os.path.join(current_folder, 'logs')
+    logfile = os.path.join(file_path, datetime.datetime.now().strftime("%Y%m%d") + ".txt")
+    with open(logfile,"a") as file:
+        log_string = str(message_object.timestamp) + " | " + text + " | " + message_object.author.name + "#" + message_object.author.discriminator + "\n"
+        file.write(log_string)
 
 def most_reactions(message):
     """
@@ -109,10 +120,15 @@ async def parse_command(message_object):
     primary_command = split_command[0].lower()
     options = split_command[1:]
 
+    current_folder = os.path.dirname(__file__)
+    file_path = os.path.join(current_folder, 'logs')
+    logfile = os.path.join(file_path, datetime.datetime.now().strftime("%Y%m%d") + ".txt")
+
     if primary_command in command_list:
         result = await command_list[primary_command](message_object)
     else:
-        print(message_object.timestamp, "| INCORRECT COMMAND |", primary_command, "|", message_object.author.name)
+        with open(logfile,"a") as file:
+            file.write(str(message_object.timestamp) + " | INCORRECT COMMAND | " + primary_command + " | " + message_object.author.name + "#" + message_object.author.discriminator + "\n")
         result = "Error: That command doesn't exist. To see a list of available commands type $help."
 
     if result:
@@ -123,6 +139,10 @@ async def parse_pm(message_object):
     pm_channel = message_object.channel
     sent_command = message_object.content.lower()
     full_username = message_object.author.name + "#" + message_object.author.discriminator
+    
+    current_folder = os.path.dirname(__file__)
+    file_path = os.path.join(current_folder, 'logs')
+    logfile = os.path.join(file_path, datetime.datetime.now().strftime("%Y%m%d") + ".txt")
 
     if sent_command in pm_commands:
         if sent_command == 'role':
@@ -137,6 +157,7 @@ async def parse_pm(message_object):
                     has_role = True
                     break
 
+        if not debug:
             if has_role:
                 pm_text = ("You already have the 'Custom' role and should be able to see "
                            "#custom-games and #custom-chat-lfg already.")
@@ -146,6 +167,11 @@ async def parse_pm(message_object):
                 print("Gave Custom role to", full_username)
                 pm_text = ("Added the Custom role successfully. You should now be able to "
                            "see #custom-games and #custom-chat-lfg.")
+        else: 
+            print("Role assignment is not available in debug mode.")
+            pm_text = None
+
+
         if sent_command == 'schedule':
             pm_text = ("A full schedule of upcoming games can be found at <https://goo.gl/TQ8GoH>"
                        "\n\nThe schedule should be shown in your time zone, but you can verify "
@@ -172,10 +198,15 @@ async def parse_pm(message_object):
                        "least approximately once per week, please let us know "
                        "by filling out this form: <https://goo.gl/forms/H1QrCeS2KZ1JB8IE3>")
 
-        print(message_object.timestamp, "| Successfully parsed command from", full_username, "|", sent_command)
-        await client.send_message(pm_channel, content=pm_text)
+        
+        with open(logfile,"a") as file:
+            file.write(str(message_object.timestamp) + " | Successfully parsed command from " + full_username + " | " + sent_command + "\n")
+        
+        if pm_text:
+            await client.send_message(pm_channel, content=pm_text)
     else:
-        print(message_object.timestamp, "| Failed to parse command from", full_username, "|", sent_command)
+        with open(logfile,"a") as file:
+            file.write(str(message_object.timestamp) + " | Failed to parse command from " + full_username + " | " + sent_command + "\n")
         error_message = "Sorry, I don't recognise that command."
         await client.send_message(pm_channel, content=error_message)
 
@@ -185,7 +216,7 @@ async def squad_vote(command_message):
 
     The hoster can specify squad sizes to be used, or 'all' to include
     every size between 1 and 10. If there are no arguments, the vote
-    defaults to 1, 2, 4, and 8. The vote stays open for 3 minutes.
+    defaults to 1, 2, 4, and 8. The vote stays open for 2 minutes.
 
     Once a winner is determined, set_voice_limit() is run for the
     winning size.
@@ -213,7 +244,7 @@ async def squad_vote(command_message):
     customs_channel = get_custom_games()
 
     squad_vote_message = "Please vote on squad size for the next game:\nTimer: {}"
-    default_message = squad_vote_message.format("03:00")
+    default_message = squad_vote_message.format("02:00")
     
     sent_squad_message = await client.send_message(customs_channel['games'], content= default_message)
 
@@ -274,7 +305,7 @@ async def region_vote(command_message):
     customs_channel = get_custom_games()
 
     region_vote_message = "Which region should we host today's games on?\nTimer: {}"
-    default_region_message = region_vote_message.format("03:00")
+    default_region_message = region_vote_message.format("02:00")
     sent_region_message = await client.send_message(customs_channel['games'], content= default_region_message)
 
     if debug:
