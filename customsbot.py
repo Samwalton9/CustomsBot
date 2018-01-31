@@ -6,8 +6,6 @@ import os
 
 # TODO: When someone receives the custom role, PM them information.
 
-#TODO: Fix initial timer, says 3:00
-
 client = discord.Client()
 
 """Checks if the logs folder exists, creates it if it isn't."""
@@ -28,13 +26,18 @@ def get_custom_games():
 
     return channels
 
-def log_command(message_object, text):
-    """Whenever a command is sent, log it to the logfile"""
+def log_command(message_object, text, error=False):
+    """Whenever a command is sent, log it to today's log file"""
     current_folder = os.path.dirname(__file__)
     file_path = os.path.join(current_folder, 'logs')
     logfile = os.path.join(file_path, datetime.datetime.now().strftime("%Y%m%d") + ".txt")
-    with open(logfile,"a") as file:
-        log_string = str(message_object.timestamp) + " | " + text + " | " + message_object.author.name + "#" + message_object.author.discriminator + "\n"
+    if error:
+        status = " | Incorrect command"
+    else:
+        status = ""
+
+    with open(logfile, "a") as file:
+        log_string = str(message_object.timestamp) + " | " + text + " | " + message_object.author.name + "#" + message_object.author.discriminator + status + "\n"
         file.write(log_string)
 
 def most_reactions(message):
@@ -120,15 +123,10 @@ async def parse_command(message_object):
     primary_command = split_command[0].lower()
     options = split_command[1:]
 
-    current_folder = os.path.dirname(__file__)
-    file_path = os.path.join(current_folder, 'logs')
-    logfile = os.path.join(file_path, datetime.datetime.now().strftime("%Y%m%d") + ".txt")
-
     if primary_command in command_list:
         result = await command_list[primary_command](message_object)
     else:
-        with open(logfile,"a") as file:
-            file.write(str(message_object.timestamp) + " | INCORRECT COMMAND | " + primary_command + " | " + message_object.author.name + "#" + message_object.author.discriminator + "\n")
+        log_command(message_object, primary_command, error=True)
         result = "Error: That command doesn't exist. To see a list of available commands type $help."
 
     if result:
@@ -139,10 +137,7 @@ async def parse_pm(message_object):
     pm_channel = message_object.channel
     sent_command = message_object.content.lower()
     full_username = message_object.author.name + "#" + message_object.author.discriminator
-    
-    current_folder = os.path.dirname(__file__)
-    file_path = os.path.join(current_folder, 'logs')
-    logfile = os.path.join(file_path, datetime.datetime.now().strftime("%Y%m%d") + ".txt")
+    role_granted = False
 
     if sent_command in pm_commands:
         if sent_command == 'role':
@@ -164,9 +159,9 @@ async def parse_pm(message_object):
             else:
                 custom_role = discord.utils.get(pubg_server.roles, id=custom_role_id)
                 await client.add_roles(pubg_member, custom_role)
-                print("Gave Custom role to", full_username)
                 pm_text = ("Added the Custom role successfully. You should now be able to "
                            "see #custom-games and #custom-chat-lfg.")
+                role_granted = True
         else: 
             print("Role assignment is not available in debug mode.")
             pm_text = None
@@ -198,15 +193,15 @@ async def parse_pm(message_object):
                        "least approximately once per week, please let us know "
                        "by filling out this form: <https://goo.gl/forms/H1QrCeS2KZ1JB8IE3>")
 
-        
-        with open(logfile,"a") as file:
-            file.write(str(message_object.timestamp) + " | Successfully parsed command from " + full_username + " | " + sent_command + "\n")
+        if role_granted:
+            log_command(message_object, sent_command + " (PM) - granted new role")
+        else:
+            log_command(message_object, sent_command + " (PM)")
         
         if pm_text:
             await client.send_message(pm_channel, content=pm_text)
     else:
-        with open(logfile,"a") as file:
-            file.write(str(message_object.timestamp) + " | Failed to parse command from " + full_username + " | " + sent_command + "\n")
+        log_command(message_object, sent_command + " (PM)", error=True)
         error_message = "Sorry, I don't recognise that command."
         await client.send_message(pm_channel, content=error_message)
 
