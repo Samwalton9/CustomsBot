@@ -32,7 +32,7 @@ def log_command(message_object, text):
     file_path = os.path.join(current_folder, 'logs')
     logfile = os.path.join(file_path, datetime.datetime.now().strftime("%Y%m%d") + ".txt")
     with open(logfile,"a") as file:
-        log_string = (str(message_object.timestamp) + " | " + text + " | " + message_object.author.name + "#" + message_object.author.discriminator + "\n")
+        log_string = str(message_object.timestamp) + " | " + text + " | " + message_object.author.name + "#" + message_object.author.discriminator + "\n"
         file.write(log_string)
 
 def most_reactions(message):
