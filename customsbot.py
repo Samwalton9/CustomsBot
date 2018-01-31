@@ -118,10 +118,15 @@ async def parse_command(message_object):
     primary_command = split_command[0].lower()
     options = split_command[1:]
 
+    current_folder = os.path.dirname(__file__)
+    file_path = os.path.join(current_folder, 'logs')
+    logfile = os.path.join(file_path, datetime.datetime.now().strftime("%Y%m%d") + ".txt")
+
     if primary_command in command_list:
         result = await command_list[primary_command](message_object)
     else:
-        print(message_object.timestamp, "| INCORRECT COMMAND |", primary_command, "|", message_object.author.name)
+        with open(logfile,"a") as file:
+            file.write(str(message_object.timestamp) + " | INCORRECT COMMAND | " + primary_command + " | " + message_object.author.name + "#" + message_object.author.discriminator + "\n")
         result = "Error: That command doesn't exist. To see a list of available commands type $help."
 
     if result:
@@ -132,6 +137,10 @@ async def parse_pm(message_object):
     pm_channel = message_object.channel
     sent_command = message_object.content.lower()
     full_username = message_object.author.name + "#" + message_object.author.discriminator
+    
+    current_folder = os.path.dirname(__file__)
+    file_path = os.path.join(current_folder, 'logs')
+    logfile = os.path.join(file_path, datetime.datetime.now().strftime("%Y%m%d") + ".txt")
 
     if sent_command in pm_commands:
         if sent_command == 'role':
@@ -187,11 +196,15 @@ async def parse_pm(message_object):
                        "least approximately once per week, please let us know "
                        "by filling out this form: <https://goo.gl/forms/H1QrCeS2KZ1JB8IE3>")
 
-        print(message_object.timestamp, "| Successfully parsed command from", full_username, "|", sent_command)
+        
+        with open(logfile,"a") as file:
+            file.write(str(message_object.timestamp) + " | Successfully parsed command from " + full_username + " | " + sent_command + "\n")
+        
         if pm_text:
             await client.send_message(pm_channel, content=pm_text)
     else:
-        print(message_object.timestamp, "| Failed to parse command from", full_username, "|", sent_command)
+        with open(logfile,"a") as file:
+            file.write(str(message_object.timestamp) + " | Failed to parse command from " + full_username + " | " + sent_command + "\n")
         error_message = "Sorry, I don't recognise that command."
         await client.send_message(pm_channel, content=error_message)
 
@@ -201,7 +214,7 @@ async def squad_vote(command_message):
 
     The hoster can specify squad sizes to be used, or 'all' to include
     every size between 1 and 10. If there are no arguments, the vote
-    defaults to 1, 2, 4, and 8. The vote stays open for 3 minutes.
+    defaults to 1, 2, 4, and 8. The vote stays open for 2 minutes.
 
     Once a winner is determined, set_voice_limit() is run for the
     winning size.
@@ -229,7 +242,7 @@ async def squad_vote(command_message):
     customs_channel = get_custom_games()
 
     squad_vote_message = "Please vote on squad size for the next game:\nTimer: {}"
-    default_message = squad_vote_message.format("03:00")
+    default_message = squad_vote_message.format("02:00")
     
     sent_squad_message = await client.send_message(customs_channel['games'], content= default_message)
 
@@ -290,7 +303,7 @@ async def region_vote(command_message):
     customs_channel = get_custom_games()
 
     region_vote_message = "Which region should we host today's games on?\nTimer: {}"
-    default_region_message = region_vote_message.format("03:00")
+    default_region_message = region_vote_message.format("02:00")
     sent_region_message = await client.send_message(customs_channel['games'], content= default_region_message)
 
     for region_emoji in region_emoji_ids:
@@ -490,7 +503,7 @@ command_list = {
 # Debugging suppresses #mods and #super-secret-sub-club messages and
 # treats #bot-testing in SamWalton's Discord server as both #custom-games
 # and #custom-hosters.
-debug = False
+debug = True
 
 if debug == True:
     token_file = 'test_bot_token'
