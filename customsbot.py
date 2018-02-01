@@ -1,18 +1,35 @@
 import discord
+from discord.ext import commands
 import asyncio
 import datetime
 import random
 import os
 
 # TODO: When someone receives the custom role, PM them information.
+# TODO: I can probably scrap get_custom_games in favour of customs_hosters being ctx.message.channel
 
-client = discord.Client()
+client = commands.Bot(command_prefix='$')
 
-"""Checks if the logs folder exists, creates it if it isn't."""
+"""Checks if the logs folder exists, creates it if not."""
 folder_exists = os.path.isdir("logs")
 if not folder_exists:
         os.mkdir("logs")
 
+def hoster_only():
+    """Trust commands from #custom-hosters only"""
+    def predicate(ctx):
+        customs_channel = get_custom_games()
+        return ctx.message.channel == customs_channel['hosters']
+    return commands.check(predicate)
+
+def is_pm():
+    """Checks if a message is a PM to the bot"""
+    def predicate(ctx):
+        pm_check = ctx.guild is None and "CustomsBot" not in ctx.author.name
+        return pm_check
+    return commands.check(predicate)
+
+#TODO: Split off any commands that don't need client to another file
 def get_custom_games():
     """Returns a dict containing #custom-games and #custom-hosters objects"""
     customs_hosters = client.get_channel('375276183777968130')
@@ -75,137 +92,107 @@ async def on_ready():
         print(server.name)
     print('-----')
 
-@client.event
-async def on_message(message):
-    """Check every message for a command, trust any from #custom-hosters"""
-    is_command = message.content.startswith('$')
 
-    if is_command:
-        customs_channel = get_custom_games()
-        if message.channel == customs_channel['hosters']:
-            await parse_command(message)
-
-    is_pm = message.channel.is_private
-
-    if is_pm and "CustomsBot" not in message.author.name:
-        pm_response = ("Hi! We run custom games multiple times every week,"
-                       " and I would be happy to give you more information."
-                       "\n\nIf you don't yet have the 'Custom' role, which "
-                       "allows you to see #custom-games and "
-                       "#custom-chat-lfg, please respond with `role` and"
-                       " I'll add it to your account.\n\n"
-                       "If you would like a link to the schedule, please "
-                       "respond with `schedule`.\n\n"
-                       "To receive a link to the Twitch stream, please "
-                       "reply `twitch`.\n\n"
-                       "If you want to sign up as a hoster or suggest a "
-                       "new game mode, please reply `forms`."
-                      )
-
-        num_pms = 0
-        async for pm_message in client.logs_from(message.channel, limit=20):
-            num_pms += 1
-
-        if num_pms > 1:
-            await parse_pm(message)
-        else:
-            print("Sent instructions to", message.author.name)
-            await client.send_message(message.channel, content=pm_response)        
-
-async def parse_command(message_object):
-    """
-    After a command has been identified, get the primary command and run
-    the relevant function.
-    """
-    command_string = message_object.content
-
-    split_command = command_string[1:].split(" ")
-    primary_command = split_command[0].lower()
-    options = split_command[1:]
-
-    if primary_command in command_list:
-        result = await command_list[primary_command](message_object)
-    else:
-        log_command(message_object, primary_command, error=True)
-        result = "Error: That command doesn't exist. To see a list of available commands type $help."
-
-    if result:
-        await client.send_message(message_object.channel, content=result)
-
-async def parse_pm(message_object):
+# TODO: Split pm_response text into separate file
+@client.command(pass_context=True)
+@is_pm()
+async def parse_pm(ctx, pm_command):
     pm_commands = ['role', 'schedule', 'twitch', 'forms']
+    pm_response = ("Hi! We run custom games multiple times every week,"
+                   " and I would be happy to give you more information."
+                   "\n\nIf you don't yet have the 'Custom' role, which "
+                   "allows you to see #custom-games and "
+                   "#custom-chat-lfg, please respond with `role` and"
+                   " I'll add it to your account.\n\n"
+                   "If you would like a link to the schedule, please "
+                   "respond with `schedule`.\n\n"
+                   "To receive a link to the Twitch stream, please "
+                   "reply `twitch`.\n\n"
+                   "If you want to sign up as a hoster or suggest a "
+                   "new game mode, please reply `forms`."
+                  )
+    message_object = ctx.message
     pm_channel = message_object.channel
-    sent_command = message_object.content.lower()
-    full_username = message_object.author.name + "#" + message_object.author.discriminator
+    full_username = ctx.author.name + "#" + ctx.author.discriminator
     role_granted = False
 
-    if sent_command in pm_commands:
-        if sent_command == 'role':
-            pubg_server = client.get_server("289466476187090944")
-            pubg_member = pubg_server.get_member(message_object.author.id)
-            member_roles = pubg_member.roles
-            custom_role_id = "318030585647857665"
+    num_pms = 0
+    async for pm_message in client.logs_from(pm_channel, limit=2):
+        num_pms += 1
 
-            has_role = False
-            for role in member_roles:
-                if role.id == custom_role_id:
-                    has_role = True
-                    break
+    if num_pms > 1:
+        if pm_command in pm_commands:
+            if pm_command == 'role':
+                pubg_server = client.get_server("289466476187090944")
+                pubg_member = pubg_server.get_member(message_object.author.id)
+                member_roles = pubg_member.roles
+                custom_role_id = "318030585647857665"
 
-        if not debug:
-            if has_role:
-                pm_text = ("You already have the 'Custom' role and should be able to see "
-                           "#custom-games and #custom-chat-lfg already.")
+                has_role = False
+                for role in member_roles:
+                    if role.id == custom_role_id:
+                        has_role = True
+                        break
+
+            if not debug:
+                if has_role:
+                    pm_text = ("You already have the 'Custom' role and should be able to see "
+                               "#custom-games and #custom-chat-lfg already.")
+                else:
+                    custom_role = discord.utils.get(pubg_server.roles, id=custom_role_id)
+                    await client.add_roles(pubg_member, custom_role)
+                    pm_text = ("Added the Custom role successfully. You should now be able to "
+                               "see #custom-games and #custom-chat-lfg.")
+                    role_granted = True
+            else: 
+                print("Role assignment is not available in debug mode.")
+                pm_text = None
+
+
+            if pm_command == 'schedule':
+                pm_text = ("A full schedule of upcoming games can be found at <https://goo.gl/TQ8GoH>"
+                           "\n\nThe schedule should be shown in your time zone, but you can verify "
+                           "this by checking the menu in the top right."
+                           "\n\n*If the schedule appears to be blank, we may not have any games "
+                           "currently planned. Check back soon to see if we've added any!*")
+            if pm_command == 'twitch':
+                pm_text = ("All our games are streamed over at our Twitch channel: "
+                           "<https://twitch.tv/pubgreddit>\n\n"
+                           "Twitch subscribers get access to #super-secret-sub-club, "
+                           "where passwords for custom games are posted before being "
+                           "announced publicly. Any funds raised through subscriptions "
+                           "will go into future tournaments! Once you've subscribed "
+                           "just make sure your Twitch account is linked to your "
+                           "Discord account and you should get the role!")
+            if pm_command == 'forms':
+                pm_text = ("The game modes we play are usually taken from this list, "
+                           "which we continue to expand with new modes: "
+                           "<https://goo.gl/JU1ds1> You can suggest new modes using "
+                           "this form: <https://goo.gl/forms/b8AZGpSQpvkj1suj1>\n\n"
+                           "If you have experience streaming games on Twitch "
+                           "(with a solid internet connection and a PC good enough "
+                           "to handle it), and have the availability to host at "
+                           "least approximately once per week, please let us know "
+                           "by filling out this form: <https://goo.gl/forms/H1QrCeS2KZ1JB8IE3>")
+
+            if role_granted:
+                log_command(message_object, pm_command + " (PM) - granted new role")
             else:
-                custom_role = discord.utils.get(pubg_server.roles, id=custom_role_id)
-                await client.add_roles(pubg_member, custom_role)
-                pm_text = ("Added the Custom role successfully. You should now be able to "
-                           "see #custom-games and #custom-chat-lfg.")
-                role_granted = True
-        else: 
-            print("Role assignment is not available in debug mode.")
-            pm_text = None
-
-
-        if sent_command == 'schedule':
-            pm_text = ("A full schedule of upcoming games can be found at <https://goo.gl/TQ8GoH>"
-                       "\n\nThe schedule should be shown in your time zone, but you can verify "
-                       "this by checking the menu in the top right."
-                       "\n\n*If the schedule appears to be blank, we may not have any games "
-                       "currently planned. Check back soon to see if we've added any!*")
-        if sent_command == 'twitch':
-            pm_text = ("All our games are streamed over at our Twitch channel: "
-                       "<https://twitch.tv/pubgreddit>\n\n"
-                       "Twitch subscribers get access to #super-secret-sub-club, "
-                       "where passwords for custom games are posted before being "
-                       "announced publicly. Any funds raised through subscriptions "
-                       "will go into future tournaments! Once you've subscribed "
-                       "just make sure your Twitch account is linked to your "
-                       "Discord account and you should get the role!")
-        if sent_command == 'forms':
-            pm_text = ("The game modes we play are usually taken from this list, "
-                       "which we continue to expand with new modes: "
-                       "<https://goo.gl/JU1ds1> You can suggest new modes using "
-                       "this form: <https://goo.gl/forms/b8AZGpSQpvkj1suj1>\n\n"
-                       "If you have experience streaming games on Twitch "
-                       "(with a solid internet connection and a PC good enough "
-                       "to handle it), and have the availability to host at "
-                       "least approximately once per week, please let us know "
-                       "by filling out this form: <https://goo.gl/forms/H1QrCeS2KZ1JB8IE3>")
-
-        if role_granted:
-            log_command(message_object, sent_command + " (PM) - granted new role")
+                log_command(message_object, pm_command + " (PM)")
+            
+            if pm_text:
+                await client.send_message(pm_channel, content=pm_text)
         else:
-            log_command(message_object, sent_command + " (PM)")
-        
-        if pm_text:
-            await client.send_message(pm_channel, content=pm_text)
+            log_command(message_object, pm_command + " (PM)", error=True)
+            error_message = "Sorry, I don't recognise that command."
+            await client.send_message(pm_channel, content=error_message)
     else:
-        log_command(message_object, sent_command + " (PM)", error=True)
-        error_message = "Sorry, I don't recognise that command."
-        await client.send_message(pm_channel, content=error_message)
+        print("Sent instructions to", message.author.name)
+        await client.send_message(pm_channel, content=pm_response)
 
-async def squad_vote(command_message):
+@client.command(name='squadvote', aliases=['sqv'], pass_context=True)
+@hoster_only()
+async def squad_vote(ctx, *args):
     """
     Starts a vote on squad size.
 
@@ -216,8 +203,10 @@ async def squad_vote(command_message):
     Once a winner is determined, set_voice_limit() is run for the
     winning size.
     """
-    command_sent = command_message.content
-    message_squad_sizes = command_sent.split(" ")[1:]
+    message_object = ctx.message
+    message_channel = ctx.message.channel
+    command_sent = message_object.content
+    message_squad_sizes = args
     
     if len(message_squad_sizes) == 0:
         default_squad_sizes = [1, 2, 4, 8]
@@ -230,11 +219,15 @@ async def squad_vote(command_message):
                 sizes_selected = [int(i) for i in message_squad_sizes]
                 squad_sizes_selected = sorted(sizes_selected)
             except ValueError:
-                return "Error: Please only use integers as arguments for `squadvote`."
+                error_message = "Error: Please only use integers as arguments for `squadvote`."
+                await client.send_message(message_channel, content= error_message)
+                return
 
             squads_correct_range = all(i >= 1 and i <= 10 for i in squad_sizes_selected)
             if not squads_correct_range:
-                return "Error: Please only use integers between 1 and 10 for `squadvote`."            
+                error_message = "Error: Please only use integers between 1 and 10 for `squadvote`."            
+                await client.send_message(message_channel, content= error_message)
+                return
 
     customs_channel = get_custom_games()
 
@@ -253,9 +246,8 @@ async def squad_vote(command_message):
 
     here_ping = await client.send_message(customs_channel['games'], content="@here")
 
-    message_channel = command_message.channel
-    await client.send_message(message_channel, "Squad size vote successfully posted.")
-    log_command(command_message, "Squad vote")
+    await client.send_message(message_channel, content= "Squad size vote successfully posted.")
+    log_command(message_object, "Squad vote")
 
     time_to_post = datetime.datetime.now() + datetime.timedelta(seconds=120)
 
@@ -278,9 +270,16 @@ async def squad_vote(command_message):
 
     await client.delete_message(here_ping)
 
-    await set_voice_limit(user_limit=squad_selected)
+    if len(squad_selected) > 1:
+        voice_limit_int = int(squad_selected[:-1])  # Unicode to int
+    else:
+        voice_limit_int = 10
 
-async def region_vote(command_message):
+    await set_voice_limit(ctx, user_limit=voice_limit_int)
+
+@client.command(name='regionvote', aliases=['rv'], pass_context=True)
+@hoster_only()
+async def region_vote(ctx):
     """
     Starts a vote on region to host on.
 
@@ -313,9 +312,9 @@ async def region_vote(command_message):
 
     here_ping = await client.send_message(customs_channel['games'], content="@here")
 
-    message_channel = command_message.channel
+    message_channel = ctx.message.channel
     await client.send_message(message_channel, "Region vote successfully posted.")
-    log_command(command_message, "Region vote")
+    log_command(ctx.message, "Region vote")
 
     time_to_post = datetime.datetime.now() + datetime.timedelta(seconds=120)
 
@@ -338,7 +337,9 @@ async def region_vote(command_message):
 
     await client.edit_message(sent_region_message, region_message_finished)
 
-async def password_countdown(command_message):
+@client.command(name='password', pass_context=True)
+@hoster_only()
+async def password_countdown(ctx, password, timer):
     """
     Starts a countdown to password release in #custom-games. Immediately
     posts server name and password to #mods and #super-secret-sub-club,
@@ -347,20 +348,23 @@ async def password_countdown(command_message):
     Hoster must specify a password, and may optionally specify the number
     of minutes until the password is released. Defaults to 5 minutes.
     """
-    split_message = command_message.content.split(" ")
-    message_length = len(split_message)
-    if message_length not in [2, 3]:
-        return "Incorrect number of arguments given."
+    message_channel = ctx.message.channel
 
-    password = split_message[1]
-    if message_length == 3:
-        timer = split_message[2]
+    if not password:
+        error_message = "Error: Please enter a password."
+        await client.send_message(message_channel, content=error_message)
+        return
+
+    if timer:
         try:
-            num_seconds = int(split_message[2])*60
+            num_seconds = int(timer)*60
         except ValueError:
-            return "Error: Please use an integer to denote the countdown length for `password`."
+            error_message = "Error: Please use an integer to denote the countdown length for `password`."
+            await client.send_message(message_channel, content=error_message)
+            return
     else:
         num_seconds = 300
+
     customs_channel = get_custom_games()
 
     time_to_post = datetime.datetime.now() + datetime.timedelta(seconds=num_seconds)
@@ -386,7 +390,7 @@ async def password_countdown(command_message):
         if channel_name == sssc_channel:
             await client.send_message(channel_name, content="@here")
 
-    log_command(command_message, "Password")
+    log_command(ctx.message, "Password")
 
     while datetime.datetime.now() < time_to_post:
         countdown_timer = time_to_post - datetime.datetime.now()
@@ -398,29 +402,24 @@ async def password_countdown(command_message):
     await client.edit_message(countdown_message, result_string)
     await client.send_message(customs_channel['games'], content="@here")
 
-async def set_voice_limit(command_message=None, user_limit=None):
+@client.command(name='setvoicelimit', pass_context=True)
+@hoster_only()
+async def set_voice_limit(ctx, user_limit):
     """
     Changes all custom games voice channel sizes to the one specified.
 
     Can be run either directly via $setvoicelimit or indirectly in
     other functions.
     """
-    if command_message:
-        split_message = command_message.content.split(" ")
-        message_length = len(split_message)
-        if message_length == 2:
-            voice_limit = split_message[1]
-            try:
-                voice_limit_int = int(voice_limit)
-            except ValueError:
-                return "Error: Please use an integer to denote the size of voice channels."    
-        else:
-            return "Error: Wrong number of arguments given."
+    message_channel = ctx.message.channel
+
     if user_limit:
-        if len(user_limit) > 1:
-            voice_limit_int = int(user_limit[:-1])  # Unicode to int
-        else:
-            voice_limit_int = 10
+        try:
+            voice_limit_int = int(user_limit)
+        except ValueError:
+            error_message = "Error: Please use an integer to denote the size of voice channels."    
+            await client.send_message(message_channel, content=error_message)
+            return
 
     customs_channel = get_custom_games()
 
@@ -431,9 +430,11 @@ async def set_voice_limit(command_message=None, user_limit=None):
 
     voice_limit_message = "Set custom games voice channels to new user limit of {}.".format(voice_limit_int)
 
-    await client.send_message(customs_channel['hosters'], voice_limit_message)
+    await client.send_message(message_channel, content=voice_limit_message)
 
-async def remove_messages(command_message):
+@client.command(name='clear', pass_context=True)
+@hoster_only()
+async def remove_messages(ctx, num_messages):
     """
     Removes a number of CustomsBot messages from #custom-games.
 
@@ -441,17 +442,15 @@ async def remove_messages(command_message):
     CustomsBot's messages. This function removes either a set amount
     or all of CustomsBot's messages.
     """
-    message_split = command_message.content.split(" ")
-    message_length = len(message_split)
-    num_messages = message_split[1]
+    message_channel = ctx.message.channel
 
-    if message_length != 2:
-        return "Incorrect number of arguments given."
     if num_messages != 'all':
         try:
             num_messages = int(num_messages)
         except ValueError:
-            return "Error: Please use an integer to denote the number of messages to clear."
+            error_message = "Error: Please use an integer to denote the number of messages to clear."
+            await client.send_message(message_channel, content=error_message)
+            return
     
     customs_channel = get_custom_games()
 
@@ -479,35 +478,15 @@ async def remove_messages(command_message):
         await client.delete_message(customsbot_message)
 
     confirmation_text = "Removed {} CustomsBot messages from #custom-games.".format(num_messages)
-    await client.send_message(command_message.channel, confirmation_text)
+    await client.send_message(message_channel, confirmation_text)
 
-    log_command(command_message, "Remove messages ({})".format(num_messages))
+    log_command(ctx.message, "Remove messages ({})".format(num_messages))
 
-async def help_list(command_message):
-    """Prints an embedded list of commands."""
-    command_channel = command_message.channel
-    list_of_commands = '''
-    `squadvote <squad size 1> <squad size 2> ...` - Post a vote for squad size for the next game, defaults to 1, 2, 4, and 8. `squadvote all` will do every size between 1 and 10. Automatically changes voice channel sizes to winning vote.
-    \n`regionvote` - Post a vote for the region for this session's custom games.
-    \n`password <password> <minutes>` - Post a countdown to the <password> release of <minutes> minutes. Automatically posts password to #mods and #super-secret-sub-club.
-    \n`setvoicelimit` - Change all voice channel sizes.
-    \n`clear <number>` - Remove <number> of CustomsBot messages from #custom-games. `clear all` will remove all CustomsBot messages.
-    '''
-    em = discord.Embed(title="CustomsBot commands", description= list_of_commands)
-
-    await client.send_message(command_channel, embed=em)
-
-# Keys are the commands used by helpers, values are the function names.
-command_list = {
-    'help': help_list,
-    'squadvote': squad_vote,
-    'sqv': squad_vote,
-    'regionvote': region_vote,
-    'rv': region_vote,
-    'password': password_countdown,
-    'setvoicelimit': set_voice_limit,
-    'clear': remove_messages
-}
+@client.event
+async def on_command_error(error, ctx):
+    if isinstance(error, commands.MissingRequiredArgument):
+        message_channel = ctx.message.channel
+        await client.send_message(message_channel, content= 'Required argument(s) missing.')
 
 # Debugging suppresses #mods and #super-secret-sub-club messages and
 # treats #bot-testing in SamWalton's Discord server as both #custom-games
