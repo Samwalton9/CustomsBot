@@ -6,9 +6,6 @@ import random
 import os
 import json
 
-# TODO: I can probably scrap get_custom_games in favour of 
-# customs_hosters being ctx.message.channel
-
 client = commands.Bot(command_prefix='$')
 
 """Checks if the logs folder exists, creates it if not."""
