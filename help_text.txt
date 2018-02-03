@@ -1,5 +1,0 @@
-`$squadvote <squad size 1> <squad size 2> ...` - Post a vote for squad size for the next game, defaults to 1, 2, 4, and 8. `$squadvote all` will do every size between 1 and 10. Automatically changes voice channel sizes to winning vote. e.g. `$squadvote 1 2 3 4`
-`$regionvote` - Post a vote for the region for this session's custom games.
-`$password <password> <minutes>` - Post a countdown to the <password> release of <minutes> minutes. Automatically posts password to #mods and #super-secret-sub-club.
-`$setvoicelimit <size>` - Change all voice channel sizes.
-`$clear <number>` - Remove <number> of CustomsBot messages from #custom-games. `$clear all` will remove all CustomsBot messages.
