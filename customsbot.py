@@ -4,7 +4,7 @@ import asyncio
 import datetime
 import random
 import os
-import utils
+import json
 
 # TODO: When someone receives the custom role, PM them information.
 # TODO: I can probably scrap get_custom_games in favour of 
@@ -25,13 +25,6 @@ def hoster_only():
     def predicate(ctx):
         customs_channel = get_custom_games()
         return ctx.message.channel == customs_channel['hosters']
-    return commands.check(predicate)
-
-def is_pm():
-    """Checks if a message is a PM to the bot"""
-    def predicate(ctx):
-        pm_check = ctx.guild is None and "CustomsBot" not in ctx.author.name
-        return pm_check
     return commands.check(predicate)
 
 def get_custom_games():
@@ -107,37 +100,31 @@ async def on_ready():
         print(server.name)
     print('-----')
 
+@client.event
+async def on_message(message):
+    # Handle DMs to the bot
+    if message.server is None and "CustomsBot" not in message.author.name:
+        await parse_pm(message)
+    else:
+        # Since we're overriding default on_message behaviour for the
+        # commands extension, this line is required.
+        await client.process_commands(message)
 
-# TODO: Split pm_response text into separate file
-@client.command(pass_context=True)
-@is_pm()
-async def parse_pm(ctx, pm_command):
+async def parse_pm(message_object):
+    data = json.load(open('bot_text.json'))
+
     pm_commands = ['role', 'schedule', 'twitch', 'forms']
-    pm_response = ("Hi! We run custom games multiple times every week,"
-                   " and I would be happy to give you more information."
-                   "\n\nIf you don't yet have the 'Custom' role, which "
-                   "allows you to see #custom-games and "
-                   "#custom-chat-lfg, please respond with `role` and"
-                   " I'll add it to your account.\n\n"
-                   "If you would like a link to the schedule, please "
-                   "respond with `schedule`.\n\n"
-                   "To receive a link to the Twitch stream, please "
-                   "reply `twitch`.\n\n"
-                   "If you want to sign up as a hoster or suggest a "
-                   "new game mode, please reply `forms`."
-                  )
-    message_object = ctx.message
+    pm_response = data["pmResponses"]["primary"]
     pm_channel = message_object.channel
-    full_username = ctx.author.name + "#" + ctx.author.discriminator
-    role_granted = False
+    full_username = message_object.author.name + "#" + message_object.author.discriminator
 
     num_pms = 0
     async for pm_message in client.logs_from(pm_channel, limit=2):
         num_pms += 1
 
     if num_pms > 1:
-        if pm_command in pm_commands:
-            if pm_command == 'role':
+        if message_object.content in pm_commands:
+            if message_object.content == 'role':
                 pubg_server = client.get_server("289466476187090944")
                 pubg_member = pubg_server.get_member(message_object.author.id)
                 member_roles = pubg_member.roles
@@ -149,58 +136,31 @@ async def parse_pm(ctx, pm_command):
                         has_role = True
                         break
 
-            if not debug:
-                if has_role:
-                    pm_text = ("You already have the 'Custom' role and should be able to see "
-                               "#custom-games and #custom-chat-lfg already.")
+                if not debug:
+                    if has_role:
+                        pm_text = ("You already have the 'Custom' role and should be able to see "
+                                   "#custom-games and #custom-chat-lfg already.")
+                        log_text = message_object.content + " (PM)"
+                    else:
+                        custom_role = discord.utils.get(pubg_server.roles, id=custom_role_id)
+                        await client.add_roles(pubg_member, custom_role)
+                        pm_text = ("Added the Custom role successfully. You should now be able to "
+                                   "see #custom-games and #custom-chat-lfg.")
+                        log_text = message_object.content + " (PM) - granted new role"
+
+                    log_command(message_object, log_text)
+
                 else:
-                    custom_role = discord.utils.get(pubg_server.roles, id=custom_role_id)
-                    await client.add_roles(pubg_member, custom_role)
-                    pm_text = ("Added the Custom role successfully. You should now be able to "
-                               "see #custom-games and #custom-chat-lfg.")
-                    role_granted = True
-            else: 
-                print("Role assignment is not available in debug mode.")
-                pm_text = None
+                    print("Role assignment is not available in debug mode.")
+                    pm_text = None                    
 
-
-            if pm_command == 'schedule':
-                pm_text = ("A full schedule of upcoming games can be found at <https://goo.gl/TQ8GoH>"
-                           "\n\nThe schedule should be shown in your time zone, but you can verify "
-                           "this by checking the menu in the top right."
-                           "\n\n*If the schedule appears to be blank, we may not have any games "
-                           "currently planned. Check back soon to see if we've added any!*")
-            if pm_command == 'twitch':
-                pm_text = ("All our games are streamed over at our Twitch channel: "
-                           "<https://twitch.tv/pubgreddit>\n\n"
-                           "Twitch subscribers get access to #super-secret-sub-club, "
-                           "where passwords for custom games are posted before being "
-                           "announced publicly. Any funds raised through subscriptions "
-                           "will go into future tournaments! Once you've subscribed "
-                           "just make sure your Twitch account is linked to your "
-                           "Discord account and you should get the role!")
-            if pm_command == 'forms':
-                pm_text = ("The game modes we play are usually taken from this list, "
-                           "which we continue to expand with new modes: "
-                           "<https://goo.gl/JU1ds1> You can suggest new modes using "
-                           "this form: <https://goo.gl/forms/b8AZGpSQpvkj1suj1>\n\n"
-                           "If you have experience streaming games on Twitch "
-                           "(with a solid internet connection and a PC good enough "
-                           "to handle it), and have the availability to host at "
-                           "least approximately once per week, please let us know "
-                           "by filling out this form: <https://goo.gl/forms/H1QrCeS2KZ1JB8IE3>")
-
-            if role_granted:
-                log_text = pm_command + " (PM) - granted new role"
             else:
-                log_text = pm_command + " (PM)"
-            
-            log_command(message_object, log_text)
+                pm_text = data["pmResponses"][message_object.content]
             
             if pm_text:
                 await client.send_message(pm_channel, content=pm_text)
         else:
-            log_command(message_object, pm_command + " (PM)", error=True)
+            log_command(message_object, message_object.content + " (PM)", error=True)
             error_message = "Sorry, I don't recognise that command."
             await client.send_message(pm_channel, content=error_message)
     else:
