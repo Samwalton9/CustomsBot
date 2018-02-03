@@ -15,6 +15,9 @@ folder_exists = os.path.isdir("logs")
 if not folder_exists:
         os.mkdir("logs")
 
+# Stop inbuilt $help overriding ours.
+client.remove_command('help')
+
 def hoster_only():
     """Trust commands from #custom-hosters only"""
     def predicate(ctx):
@@ -482,6 +485,21 @@ async def remove_messages(ctx, num_messages):
 
     log_command(ctx.message, "Remove messages ({})".format(num_messages))
 
+@client.command(name='help', pass_context=True)
+@hoster_only()
+async def help(ctx):
+    hoster_channel = ctx.message.channel
+
+    with open('help_text.txt','r') as help_file:
+        help_text = help_file.readlines()
+
+    help_text_joined = "".join(help_text)
+
+    help_embed = discord.Embed(title="CustomsBot available commands",
+                               description=help_text_joined)
+
+    await client.send_message(hoster_channel, embed=help_embed)
+
 @client.event
 async def on_command_error(error, ctx):
     if isinstance(error, commands.MissingRequiredArgument):
@@ -491,7 +509,7 @@ async def on_command_error(error, ctx):
 # Debugging suppresses #mods and #super-secret-sub-club messages and
 # treats #bot-testing in SamWalton's Discord server as both #custom-games
 # and #custom-hosters.
-debug = False
+debug = True
 
 if debug == True:
     token_file = 'test_bot_token'
