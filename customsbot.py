@@ -6,7 +6,6 @@ import random
 import os
 import json
 
-# TODO: When someone receives the custom role, PM them information.
 # TODO: I can probably scrap get_custom_games in favour of 
 # customs_hosters being ctx.message.channel
 
@@ -24,22 +23,22 @@ def hoster_only():
     """Trust commands from #custom-hosters only"""
     def predicate(ctx):
         customs_channel = get_custom_games()
-        return ctx.message.channel == customs_channel['hosters']
+        if debug:
+            hoster_channel = client.get_channel("382550498533703680")
+        else:
+            hoster_channel = client.get_channel("375276183777968130")
+        return ctx.message.channel == hoster_channel
     return commands.check(predicate)
 
 def get_custom_games():
-    """Returns a dict containing #custom-games and #custom-hosters objects"""
-    customs_hosters = client.get_channel('375276183777968130')
+    """Returns #custom-games object"""
     customs_channel = client.get_channel('317770788524523531')
 
     if debug:
         # bot-testing in my server
-        customs_hosters = client.get_channel('382550498533703680')
-        customs_channel = customs_hosters  # Test in the same channel.
+        customs_channel = client.get_channel('382550498533703680')
 
-    channels = {'hosters': customs_hosters, 'games': customs_channel}
-
-    return channels
+    return customs_channel
 
 def log_command(message_object, text, error=False):
     """Whenever a command is sent, log it to today's log file"""
@@ -217,7 +216,7 @@ async def squad_vote(ctx, *args):
                           "\nTimer: {}")
     default_message = squad_vote_message.format("02:00")
     
-    sent_squad_message = await client.send_message(customs_channel['games'],
+    sent_squad_message = await client.send_message(customs_channel,
                                                    content= default_message)
 
     for squad_size_int in squad_sizes_selected:
@@ -228,7 +227,7 @@ async def squad_vote(ctx, *args):
 
         await client.add_reaction(sent_squad_message, emoji)
 
-    here_ping = await client.send_message(customs_channel['games'],
+    here_ping = await client.send_message(customs_channel,
                                           content="@here")
 
     await client.send_message(message_channel,
@@ -244,7 +243,7 @@ async def squad_vote(ctx, *args):
         new_message = squad_vote_message.format(countdown_timer_string)
         await client.edit_message(sent_squad_message, new_message)
 
-    sent_squad_message = await client.get_message(customs_channel['games'],
+    sent_squad_message = await client.get_message(customs_channel,
                                                   sent_squad_message.id)
     await client.clear_reactions(sent_squad_message)
 
@@ -289,19 +288,19 @@ async def region_vote(ctx):
     region_vote_message = ("Which region should we host today's games on?"
                            "\nTimer: {}")
     default_region_message = region_vote_message.format("02:00")
-    region_message = await client.send_message(customs_channel['games'],
+    region_message = await client.send_message(customs_channel,
                                                content= default_region_message)
 
     if debug:
         debug_text = "[Regions added]"
-        await client.send_message(customs_channel['games'], debug_text)
+        await client.send_message(customs_channel, debug_text)
     else:
         for region_emoji in region_emoji_ids:
             region_emoji_obj = discord.utils.get(client.get_all_emojis(),
                                                  id=region_emoji)
             await client.add_reaction(region_message, region_emoji_obj)
 
-    here_ping = await client.send_message(customs_channel['games'],
+    here_ping = await client.send_message(customs_channel,
                                           content="@here")
 
     message_channel = ctx.message.channel
@@ -317,7 +316,7 @@ async def region_vote(ctx):
         new_message = region_vote_message.format(countdown_timer_string)
         await client.edit_message(region_message, new_message)
 
-    region_message = await client.get_message(customs_channel['games'],
+    region_message = await client.get_message(customs_channel,
                                               region_message.id)
     await client.clear_reactions(region_message)
     region_selected = most_reactions(region_message)
@@ -371,7 +370,7 @@ async def password_countdown(ctx, password, timer):
     default_text = template_string.format("[" + countdown_timer_string + "]")
     result_string = template_string.format(password)
 
-    countdown_message = await client.send_message(customs_channel['games'],
+    countdown_message = await client.send_message(customs_channel,
                                                   default_text)
 
     if debug:
@@ -397,7 +396,7 @@ async def password_countdown(ctx, password, timer):
         await client.edit_message(countdown_message, new_message)
 
     await client.edit_message(countdown_message, result_string)
-    await client.send_message(customs_channel['games'], content="@here")
+    await client.send_message(customs_channel, content="@here")
 
 @client.command(name='setvoicelimit', pass_context=True)
 @hoster_only()
@@ -418,8 +417,6 @@ async def set_voice_limit(ctx, user_limit):
                              "the size of voice channels.")  
             await client.send_message(message_channel, content=error_message)
             return
-
-    customs_channel = get_custom_games()
 
     all_channels = client.get_all_channels()
     for channel in all_channels:
@@ -464,7 +461,7 @@ async def remove_messages(ctx, num_messages):
 
     # Defaults to only retrieving 100 messages from #custom-games.
     # Has the potential to cause an issue, but should rarely ever do so.
-    async for message in client.logs_from(customs_channel['games']):
+    async for message in client.logs_from(customs_channel):
         if message.author.id == bot_id:
             if num_messages == 'all':
                 messages_to_remove.append(message)
