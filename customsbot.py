@@ -139,13 +139,13 @@ async def parse_pm(message_object):
                     if has_role:
                         pm_text = ("You already have the 'Custom' role and should be able to see "
                                    "#custom-games and #custom-chat-lfg already.")
-                        log_text = message_object.content + " (PM)"
+                        log_text = message_object.content + " | DM"
                     else:
                         custom_role = discord.utils.get(pubg_server.roles, id=custom_role_id)
                         await client.add_roles(pubg_member, custom_role)
                         pm_text = ("Added the Custom role successfully. You should now be able to "
                                    "see #custom-games and #custom-chat-lfg.")
-                        log_text = message_object.content + " (PM) - granted new role"
+                        log_text = message_object.content + " | DM | granted new role"
 
                     log_command(message_object, log_text)
 
@@ -159,7 +159,7 @@ async def parse_pm(message_object):
             if pm_text:
                 await client.send_message(pm_channel, content=pm_text)
         else:
-            log_command(message_object, message_object.content + " (PM)", error=True)
+            log_command(message_object, message_object.content + " | DM ", error=True)
             error_message = "Sorry, I don't recognise that command."
             await client.send_message(pm_channel, content=error_message)
     else:
