@@ -485,13 +485,12 @@ async def remove_messages(ctx, num_messages):
 async def help(ctx):
     hoster_channel = ctx.message.channel
 
-    with open('help_text.txt','r') as help_file:
-        help_text = help_file.readlines()
+    data = json.load(open('bot_text.json'))
 
-    help_text_joined = "".join(help_text)
+    help_text = data["helpText"]
 
     help_embed = discord.Embed(title="CustomsBot available commands",
-                               description=help_text_joined)
+                               description=help_text)
 
     await client.send_message(hoster_channel, embed=help_embed)
 
