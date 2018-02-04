@@ -156,7 +156,7 @@ async def parse_pm(message_object):
             if pm_text:
                 await client.send_message(pm_channel, content=pm_text)
         else:
-            log_command(message_object, message_object.content + " | DM ", error=True)
+            log_command(message_object, message_object.content + " | DM", error=True)
             error_message = "Sorry, I don't recognise that command."
             await client.send_message(pm_channel, content=error_message)
     else:
