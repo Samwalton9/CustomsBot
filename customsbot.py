@@ -318,7 +318,7 @@ async def region_vote(ctx):
 
     region_result = region_selected
 
-    region_message_finished = "Region vote over. Result: " + region_result
+    region_message_finished = "Region vote over. Result: {}".format(region_result)
 
     await client.delete_message(here_ping)
 
@@ -499,7 +499,7 @@ async def on_command_error(error, ctx):
 # Debugging suppresses #mods and #super-secret-sub-club messages and
 # treats #bot-testing in SamWalton's Discord server as both #custom-games
 # and #custom-hosters.
-debug = False
+debug = True
 
 if debug == True:
     token_file = 'test_bot_token'
