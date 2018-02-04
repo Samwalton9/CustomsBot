@@ -134,14 +134,12 @@ async def parse_pm(message_object):
 
                 if not debug:
                     if has_role:
-                        pm_text = ("You already have the 'Custom' role and should be able to see "
-                                   "#custom-games and #custom-chat-lfg already.")
+                        pm_text = data["pmResponses"]["rolePresent"]
                         log_text = message_object.content + " | DM"
                     else:
                         custom_role = discord.utils.get(pubg_server.roles, id=custom_role_id)
                         await client.add_roles(pubg_member, custom_role)
-                        pm_text = ("Added the Custom role successfully. You should now be able to "
-                                   "see #custom-games and #custom-chat-lfg.")
+                        pm_text = data["pmResponses"]["roleSuccess"]
                         log_text = message_object.content + " | DM | granted new role"
 
                     log_command(message_object, log_text)
