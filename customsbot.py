@@ -6,6 +6,8 @@ import random
 import os
 import json
 
+# TODO: Fix set_voice_limit() after squad vote. Might just have to have the bot write the command itself.
+
 client = commands.Bot(command_prefix='$')
 
 """Checks if the logs folder exists, creates it if not."""
@@ -46,12 +48,12 @@ def log_command(message_object, text, error=False):
     logfile = os.path.join(file_path, file_name)
 
     if error:
-        status = " | Incorrect command"
+        status = "| Incorrect command"
     else:
         status = ""
 
     with open(logfile, "a") as file:
-        log_string = "{} | {} | {}#{} {} \n"
+        log_string = "{} | {} | {}#{} {}\n"
         log_string = log_string.format(str(message_object.timestamp),
                                        text,
                                        message_object.author.name,
@@ -499,7 +501,7 @@ async def on_command_error(error, ctx):
 # Debugging suppresses #mods and #super-secret-sub-club messages and
 # treats #bot-testing in SamWalton's Discord server as both #custom-games
 # and #custom-hosters.
-debug = True
+debug = False
 
 if debug == True:
     token_file = 'test_bot_token'
