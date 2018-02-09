@@ -331,7 +331,7 @@ async def region_vote(ctx):
 
 @client.command(name='password', pass_context=True)
 @hoster_only()
-async def password_countdown(ctx, password, timer):
+async def password_countdown(ctx, password, *args):
     """
     Starts a countdown to password release in #custom-games. Immediately
     posts server name and password to #mods and #super-secret-sub-club,
@@ -347,16 +347,20 @@ async def password_countdown(ctx, password, timer):
         await client.send_message(message_channel, content=error_message)
         return
 
-    if timer:
+    if len(args) == 0:
+        num_seconds = 120
+    elif len(args) == 1:
         try:
-            num_seconds = int(timer)*60
+            num_seconds = int(args[0])*60
         except ValueError:
             error_message = ("Error: Please use an integer to denote the "
                              "countdown length for `password`.")
             await client.send_message(message_channel, content=error_message)
             return
     else:
-        num_seconds = 300
+        error_message = ("Error: Too many arguments.")
+        await client.send_message(message_channel, content=error_message)
+        return
 
     customs_channel = get_custom_games()
 
