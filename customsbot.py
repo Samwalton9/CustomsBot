@@ -506,7 +506,7 @@ async def full_vote(ctx):
     here_ping = await client.send_message(customs_channel,
                                           content="@here")
 
-    time_to_post = datetime.datetime.now() + datetime.timedelta(seconds=5)
+    time_to_post = datetime.datetime.now() + datetime.timedelta(seconds=180)
 
     while datetime.datetime.now() < time_to_post:
         countdown_timer = time_to_post - datetime.datetime.now()
