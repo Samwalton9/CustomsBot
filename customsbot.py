@@ -448,17 +448,25 @@ async def full_vote(ctx):
             "Yes": "409001479555514378",
             "No": "409001567069405194"
         }
+        emoji_map = {
+            "test1": "On",
+            "test2": "Off"
+        }
     else:
         emojis = {
             "Yes": "318081582579712000",
             "No": "318081582344830979"
+        }
+        emoji_map = {
+            "YES": "On",
+            "NO": "Off"
         }
 
     for rule, rule_options in rules.items():
         rule_message = await client.send_message(ctx.message.channel,
                                                  content=rule_options['input'])
         # Save the message in the dict for later
-        rules[rule]['message'] = rule_message
+        rules[rule]['message_id'] = rule_message.id
 
         for emoji in rule_options['emojis']:
             if isinstance(emoji, int):
@@ -470,6 +478,55 @@ async def full_vote(ctx):
                 emoji_to_add = discord.utils.get(client.get_all_emojis(),
                                                  id=emojis[emoji])
             await client.add_reaction(rule_message, emoji_to_add)
+
+    customs_channel = get_custom_games()
+
+    template_timer = "Timer: {}"
+    default_timer_message = template_timer.format("03:00")
+    timer_message = await client.send_message(customs_channel,
+                                               content= default_timer_message)
+    
+    here_ping = await client.send_message(customs_channel,
+                                          content="@here")
+
+    time_to_post = datetime.datetime.now() + datetime.timedelta(seconds=5)
+
+    while datetime.datetime.now() < time_to_post:
+        countdown_timer = time_to_post - datetime.datetime.now()
+        countdown_timer_string = get_countdown_string(countdown_timer)
+        await asyncio.sleep(1)
+        new_message = template_timer.format(countdown_timer_string)
+        await client.edit_message(timer_message, new_message)
+
+    await client.delete_message(here_ping)
+    await client.delete_message(timer_message)
+
+    gamemode_message = ""
+    announcement_str = "Vote over! The game mode, not including options with default values, will be:\n"
+
+    for rule, rule_options in rules.items():
+        vote_message = await client.get_message(customs_channel,
+                                                rules[rule]['message_id'])
+        winning_emoji = most_reactions(vote_message)
+
+        if isinstance(winning_emoji, str):
+            if len(winning_emoji) > 1:
+                emoji_str = winning_emoji[0]  # Unicode to int
+            else:
+                emoji_str = "10"
+        else:
+            emoji_str = emoji_map[winning_emoji.name]
+
+        if emoji_str != rules[rule]['default']:
+            if len(gamemode_message) != 0:
+                gamemode_message += " / "
+            this_output = rules[rule]['output'] + ": {}".format(emoji_str) + rules[rule]['units']
+            gamemode_message += this_output
+
+        await client.delete_message(vote_message)
+
+    await client.send_message(customs_channel,
+                              content= announcement_str + gamemode_message)
 
 @client.command(name='clear', pass_context=True)
 @hoster_only()
