@@ -1,0 +1,135 @@
+{
+	"DBNO revive time": {
+		"input": "Down-but-not-out revive casting time (seconds) - *Default 10*",
+		"emojis": [1, 5, 10],
+		"output": "Revive time",
+		"units": "s",
+		"default": "10"
+	},
+	"Blue zone speed": {
+		"input": "Circle speed (multiplier)",
+		"emojis": ["Minus_one", "Minus_point_five", "Zero_five", 1,"One_five", 2],
+		"output": "Circle speed",
+		"units": "x",
+		"default": "1"
+	},
+	"Red zone": {
+		"input": "Red zone on?",
+		"emojis": ["Yes", "No"],
+		"output": "Red zone",
+		"units": "",
+		"default": "On"
+	},
+	"Crates": {
+		"input": "Care package frequency (multiplier)",
+		"emojis": [0,"Zero_five", 1, "One_five", 2, 3, 4, 5],
+		"output": "Care package frequency",
+		"units": "x",
+		"default": "1"
+	},
+	"Vehicles": {
+		"input": "Vehicles on?",
+		"emojis": ["Yes", "No"],
+		"output": "Vehicles",
+		"units": "",
+		"default": "On"
+	},
+	"Snipers": {
+		"input": "Sniper rifle spawn rate (multiplier)",
+		"emojis": [0, 1, 2, 3],
+		"output": "Sniper rifle spawn rate",
+		"units": "x",
+		"default": "1"
+	},
+	"ARs": {
+		"input": "Assault rifle spawn rate (multiplier)",
+		"emojis": [0, 1, 2, 3],
+		"output": "Assault rifle spawn rate",
+		"units": "x",
+		"default": "1"
+	},
+	"HRs": {
+		"input": "Hunting rifle spawn rate (multiplier)",
+		"emojis": [0, 1, 2, 3],
+		"output": "Hunting rifle spawn rate",
+		"units": "x",
+		"default": "1"
+	},
+	"LMGs": {
+		"input": "LMG spawn rate (multiplier)",
+		"emojis": [0, 1, 2, 3],
+		"output": "LMG spawn rate",
+		"units": "x",
+		"default": "1"
+	},
+	"SMGs": {
+		"input": "SMG spawn rate (multiplier)",
+		"emojis": [0, 1, 2, 3],
+		"output": "SMG spawn rate",
+		"units": "x",
+		"default": "1"
+	},
+	"Shotguns": {
+		"input": "Shotgun spawn rate (multiplier)",
+		"emojis": [0, 1, 2, 3],
+		"output": "Shotgun spawn rate",
+		"units": "x",
+		"default": "1"
+	},
+	"Handguns": {
+		"input": "Handgun spawn rate (multiplier)",
+		"emojis": [0, 1, 2, 3],
+		"output": "Handgun spawn rate",
+		"units": "x",
+		"default": "1"
+	},
+	"Throwables": {
+		"input": "Throwables spawn rate (multiplier)",
+		"emojis": [0, 1, 2, 3],
+		"output": "Throwables spawn rate",
+		"units": "x",
+		"default": "1"
+	},
+	"Crossbows": {
+		"input": "Crossbow spawn rate (multiplier)",
+		"emojis": [0, 1, 2, 3],
+		"output": "Crossbow spawn rate",
+		"units": "x",
+		"default": "1"
+	},
+	"Attachments": {
+		"input": "Attachments spawn rate (multiplier)",
+		"emojis": [0, 1, 2, 3],
+		"output": "Attachments spawn rate",
+		"units": "x",
+		"default": "1"
+	},
+	"Meds": {
+		"input": "Meds spawn rate (multiplier)",
+		"emojis": [0, 1, 2, 3],
+		"output": "Meds spawn rate",
+		"units": "x",
+		"default": "1"
+	},
+	"Bags": {
+		"input": "Backpack spawn rate (multiplier)",
+		"emojis": [0, 1, 2, 3],
+		"output": "Backpack spawn rate",
+		"units": "x",
+		"default": "1"
+	},
+	"Helmets": {
+		"input": "Helmet spawn rate (multiplier)",
+		"emojis": [0, 1, 2, 3],
+		"output": "Helmet spawn rate",
+		"units": "x",
+		"default": "1"
+	},
+	"Armor": {
+		"input": "Armor spawn rate (multiplier)",
+		"emojis": [0, 1, 2, 3],
+		"output": "Armor spawn rate",
+		"units": "x",
+		"default": "1"
+	}
+}
