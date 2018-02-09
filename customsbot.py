@@ -479,8 +479,10 @@ async def full_vote(ctx):
             "one_five" : "1.5"
         }
 
+    customs_channel = get_custom_games()
+
     for rule, rule_options in rules.items():
-        rule_message = await client.send_message(ctx.message.channel,
+        rule_message = await client.send_message(customs_channel,
                                                  content=rule_options['input'])
         # Save the message in the dict for later
         rules[rule]['message_id'] = rule_message.id
@@ -495,8 +497,6 @@ async def full_vote(ctx):
                 emoji_to_add = discord.utils.get(client.get_all_emojis(),
                                                  id=emojis[emoji])
             await client.add_reaction(rule_message, emoji_to_add)
-
-    customs_channel = get_custom_games()
 
     template_timer = "Timer: {}"
     default_timer_message = template_timer.format("03:00")
