@@ -259,7 +259,7 @@ async def squad_vote(ctx, *args):
     else:
         voice_limit_int = 10
 
-    await set_voice_limit(ctx, user_limit=voice_limit_int)
+    await ctx.invoke(set_voice_limit, user_limit=voice_limit_int)
 
 @client.command(name='regionvote', aliases=['rv'], pass_context=True)
 @hoster_only()
@@ -409,14 +409,13 @@ async def set_voice_limit(ctx, user_limit):
     """
     message_channel = ctx.message.channel
 
-    if user_limit:
-        try:
-            voice_limit_int = int(user_limit)
-        except ValueError:
-            error_message = ("Error: Please use an integer to denote "
-                             "the size of voice channels.")  
-            await client.send_message(message_channel, content=error_message)
-            return
+    try:
+        voice_limit_int = int(user_limit)
+    except ValueError:
+        error_message = ("Error: Please use an integer to denote "
+                         "the size of voice channels.")  
+        await client.send_message(message_channel, content=error_message)
+        return
 
     all_channels = client.get_all_channels()
     for channel in all_channels:
@@ -424,6 +423,7 @@ async def set_voice_limit(ctx, user_limit):
             server_check = channel.server == client.get_server("114788455069777928")
         else:
             server_check = channel.server == client.get_server("289466476187090944")
+
         if channel.name.startswith("\U0001F6E0") and server_check:
             await client.edit_channel(channel, user_limit=voice_limit_int)
 
@@ -508,7 +508,7 @@ async def on_command_error(error, ctx):
 # Debugging suppresses #mods and #super-secret-sub-club messages and
 # treats #bot-testing in SamWalton's Discord server as both #custom-games
 # and #custom-hosters.
-debug = True
+debug = False
 
 if debug == True:
     token_file = 'test_bot_token'
