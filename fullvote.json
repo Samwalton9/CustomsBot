@@ -8,7 +8,7 @@
 	},
 	"Blue zone speed": {
 		"input": "Circle speed (multiplier)",
-		"emojis": [1, 2],
+		"emojis": ["Minus_one", "Minus_point_five", "Zero_five", 1,"One_five", 2],
 		"output": "Circle speed",
 		"units": "x",
 		"default": "1"
@@ -22,7 +22,7 @@
 	},
 	"Crates": {
 		"input": "Care package frequency (multiplier)",
-		"emojis": [0, 1, 2, 3, 4, 5],
+		"emojis": [0,"Zero_five", 1, "One_five", 2, 3, 4, 5],
 		"output": "Care package frequency",
 		"units": "x",
 		"default": "1"

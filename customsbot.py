@@ -446,20 +446,37 @@ async def full_vote(ctx):
     if debug:
         emojis = {
             "Yes": "409001479555514378",
-            "No": "409001567069405194"
+            "No": "409001567069405194",
+            "Minus_one" : "411542985768042496",
+            "Minus_point_five" : "411559786614882304",
+            "Zero_five" : "411547401518841856",
+            "One_five" : "411549102372028427"
+
         }
         emoji_map = {
             "test1": "On",
-            "test2": "Off"
+            "test2": "Off",
+            "minus_one" : "-1",
+            "minus_point_five" : "-0.5",
+            "zero_five" : "0.5",
+            "one_five" : "1.5"
         }
     else:
         emojis = {
             "Yes": "318081582579712000",
-            "No": "318081582344830979"
+            "No": "318081582344830979",
+            "Minus_one" : "411566329250840597",
+            "Minus_point_five" : "411566343469531136",
+            "Zero_five" : "411566367096045569",
+            "One_five" : "411566380404572161"
         }
         emoji_map = {
             "YES": "On",
-            "NO": "Off"
+            "NO": "Off",
+            "minus_one" : "-1",
+            "minus_point_five" : "-0.5",
+            "zero_five" : "0.5",
+            "one_five" : "1.5"
         }
 
     for rule, rule_options in rules.items():
