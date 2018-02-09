@@ -5,6 +5,7 @@ import datetime
 import random
 import os
 import json
+from collections import OrderedDict
 
 client = commands.Bot(command_prefix='$')
 
@@ -434,6 +435,42 @@ async def set_voice_limit(ctx, user_limit):
 
     await client.send_message(message_channel, content=voice_message)
 
+@client.command(name='fullvote', aliases=['fv'], pass_context=True)
+@hoster_only()
+async def full_vote(ctx):
+    '''
+    Full ruleset voting for the game mode "We'll do it live".
+    '''
+    rules = json.load(open('fullvote.json'), object_pairs_hook=OrderedDict)
+
+    if debug:
+        emojis = {
+            "Yes": "409001479555514378",
+            "No": "409001567069405194"
+        }
+    else:
+        emojis = {
+            "Yes": "318081582579712000",
+            "No": "318081582344830979"
+        }
+
+    for rule, rule_options in rules.items():
+        rule_message = await client.send_message(ctx.message.channel,
+                                                 content=rule_options['input'])
+        # Save the message in the dict for later
+        rules[rule]['message'] = rule_message
+
+        for emoji in rule_options['emojis']:
+            if isinstance(emoji, int):
+                if emoji == 10:
+                    emoji_to_add = "\U0001F51F"
+                else:
+                    emoji_to_add = str(emoji) + "\U000020e3"
+            else:
+                emoji_to_add = discord.utils.get(client.get_all_emojis(),
+                                                 id=emojis[emoji])
+            await client.add_reaction(rule_message, emoji_to_add)
+
 @client.command(name='clear', pass_context=True)
 @hoster_only()
 async def remove_messages(ctx, num_messages):
@@ -506,6 +543,8 @@ async def on_command_error(error, ctx):
         message_channel = ctx.message.channel
         await client.send_message(message_channel,
                                   content= 'Required argument(s) missing.')
+    else:
+        print(error)
 
 # Debugging suppresses #mods and #super-secret-sub-club messages and
 # treats #bot-testing in SamWalton's Discord server as both #custom-games

@@ -1,0 +1,97 @@
+{
+	"DBNO revive time": {
+		"input": "Down-but-not-out revive casting time (seconds) - *Default 10*",
+		"emojis": [1, 5, 10],
+		"output": "DBNO revive casting time (seconds)"
+	},
+	"Blue zone speed": {
+		"input": "Circle speed (multiplier)",
+		"emojis": [1, 2],
+		"output": "Circle speed (multiplier)"
+	},
+	"Red zone": {
+		"input": "Red zone on?",
+		"emojis": ["Yes", "No"],
+		"output": "Red zone"
+	},
+	"Crates": {
+		"input": "Care package frequency (multiplier)",
+		"emojis": [0, 1, 2, 3, 4, 5],
+		"output": "Care package frequency"
+	},
+	"Vehicles": {
+		"input": "Vehicles on?",
+		"emojis": ["Yes", "No"],
+		"output": "Vehicles"
+	},
+	"Snipers": {
+		"input": "Sniper rifle spawn rate (multiplier)",
+		"emojis": [0, 1, 2, 3],
+		"output": "Sniper rifle spawn rate"
+	},
+	"ARs": {
+		"input": "Assault rifle spawn rate (multiplier)",
+		"emojis": [0, 1, 2, 3],
+		"output": "Assault rifle spawn rate"
+	},
+	"HRs": {
+		"input": "Hunting rifle spawn rate (multiplier)",
+		"emojis": [0, 1, 2, 3],
+		"output": "Hunting rifle spawn rate"
+	},
+	"LMGs": {
+		"input": "LMG spawn rate (multiplier)",
+		"emojis": [0, 1, 2, 3],
+		"output": "LMG spawn rate"
+	},
+	"SMGs": {
+		"input": "SMG spawn rate (multiplier)",
+		"emojis": [0, 1, 2, 3],
+		"output": "SMG spawn rate"
+	},
+	"Shotguns": {
+		"input": "Shotgun spawn rate (multiplier)",
+		"emojis": [0, 1, 2, 3],
+		"output": "Shotgun spawn rate"
+	},
+	"Handguns": {
+		"input": "Handgun spawn rate (multiplier)",
+		"emojis": [0, 1, 2, 3],
+		"output": "Handgun spawn rate"
+	},
+	"Throwables": {
+		"input": "Throwables spawn rate (multiplier)",
+		"emojis": [0, 1, 2, 3],
+		"output": "Throwables spawn rate"
+	},
+	"Crossbows": {
+		"input": "Crossbow spawn rate (multiplier)",
+		"emojis": [0, 1, 2, 3],
+		"output": "Crossbow spawn rate"
+	},
+	"Attachments": {
+		"input": "Attachments spawn rate (multiplier)",
+		"emojis": [0, 1, 2, 3],
+		"output": "Attachments spawn rate"
+	},
+	"Meds": {
+		"input": "Meds spawn rate (multiplier)",
+		"emojis": [0, 1, 2, 3],
+		"output": "Meds spawn rate"
+	},
+	"Bags": {
+		"input": "Backpack spawn rate (multiplier)",
+		"emojis": [0, 1, 2, 3],
+		"output": "Backpack spawn rate"
+	},
+	"Helmets": {
+		"input": "Helmet spawn rate (multiplier)",
+		"emojis": [0, 1, 2, 3],
+		"output": "Helmet spawn rate"
+	},
+	"Armor": {
+		"input": "Armor spawn rate (multiplier)",
+		"emojis": [0, 1, 2, 3],
+		"output": "Armor spawn rate"
+	}
+}
