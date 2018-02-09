@@ -420,7 +420,11 @@ async def set_voice_limit(ctx, user_limit):
 
     all_channels = client.get_all_channels()
     for channel in all_channels:
-        if channel.name.startswith("\U0001F6E0"):
+        if debug:
+            server_check = channel.server == client.get_server("114788455069777928")
+        else:
+            server_check = channel.server == client.get_server("289466476187090944")
+        if channel.name.startswith("\U0001F6E0") and server_check:
             await client.edit_channel(channel, user_limit=voice_limit_int)
 
     voice_limit_message = "Set custom games voice channels to new user limit of {}."
