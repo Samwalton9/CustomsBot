@@ -6,8 +6,6 @@ import random
 import os
 import json
 
-# TODO: Fix set_voice_limit() after squad vote. Might just have to have the bot write the command itself.
-
 client = commands.Bot(command_prefix='$')
 
 """Checks if the logs folder exists, creates it if not."""
