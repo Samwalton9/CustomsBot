@@ -160,7 +160,7 @@ async def parse_pm(message_object):
             error_message = "Sorry, I don't recognise that command."
             await client.send_message(pm_channel, content=error_message)
     else:
-        print("Sent instructions to", message.author.name)
+        print("Sent instructions to", message_object.author.name)
         await client.send_message(pm_channel, content=pm_response)
 
 @client.command(name='squadvote', aliases=['sqv'], pass_context=True)
