@@ -6,17 +6,17 @@ This is a bot intended for use on /r/PUBATTLEGROUNDS primarily aimed at reducing
 
 You can use `pip install -r requirements.txt` to install necessary Python packages. This bot uses async discord.py and will switch to rewrite when it is stable.
 
-###Server
+### Server
 
 To function in the same way as on /r/PUBATTLEGROUNDS, your server will need four channels: a moderator channel, a subscriber channel, a custom games channel where the information is posted and a custom hosters channel where commands are sent. Your server will also need a Custom games role.
 
 You will need to create custom games voice channel(s) with names starting with the "\U0001F6E0" emoji. You will also need to add a number of emojis, as described in `config.json.in`.
 
-###Config
+### Config
 
 Rename `config.json.in` to `config.json` and fill out the required fields before running.
 
-###Permissions
+### Permissions
 
 You should give the following permissions to your bot for it to run properly:
 
