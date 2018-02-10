@@ -6,9 +6,16 @@
 		"units": "s",
 		"default": "10"
 	},
+	"Circle centralisation": {
+		"input": "Circle centralisation (multiplier)",
+		"emojis": ["Minus_one", "Minus_point_five", 0, "Zero_five", 1,"One_five", 2],
+		"output": "Circle centralisation",
+		"units": "x",
+		"default": "1"
+	},
 	"Blue zone speed": {
 		"input": "Circle speed (multiplier)",
-		"emojis": ["Minus_one", "Minus_point_five", "Zero_five", 1,"One_five", 2],
+		"emojis": [1,"One_five", 2],
 		"output": "Circle speed",
 		"units": "x",
 		"default": "1"
