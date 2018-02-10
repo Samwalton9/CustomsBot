@@ -17,24 +17,21 @@ if not folder_exists:
 # Stop inbuilt $help overriding ours.
 client.remove_command('help')
 
+config_data = json.load(open('config.json'))
+text_data = json.load(open('bot_text.json'))
+
 def hoster_only():
     """Trust commands from #custom-hosters only"""
     def predicate(ctx):
         customs_channel = get_custom_games()
-        if debug:
-            hoster_channel = client.get_channel("382550498533703680")
-        else:
-            hoster_channel = client.get_channel("375276183777968130")
+        hoster_channel = client.get_channel(config_data["channels"]["hoster"])
+
         return ctx.message.channel == hoster_channel
     return commands.check(predicate)
 
 def get_custom_games():
     """Returns #custom-games object"""
-    customs_channel = client.get_channel('317770788524523531')
-
-    if debug:
-        # bot-testing in my server
-        customs_channel = client.get_channel('382550498533703680')
+    customs_channel = client.get_channel(config_data["channels"]["customgames"])
 
     return customs_channel
 
@@ -100,18 +97,17 @@ async def on_ready():
 @client.event
 async def on_message(message):
     # Handle DMs to the bot
-    if message.server is None and "CustomsBot" not in message.author.name:
-        await parse_pm(message)
+    if message.server is None and not message.author.bot:
+            await parse_pm(message)
     else:
         # Since we're overriding default on_message behaviour for the
         # commands extension, this line is required.
         await client.process_commands(message)
 
 async def parse_pm(message_object):
-    data = json.load(open('bot_text.json'))
 
     pm_commands = ['role', 'schedule', 'twitch', 'forms']
-    pm_response = data["pmResponses"]["primary"]
+    pm_response = text_data["pmResponses"]["primary"]
     pm_channel = message_object.channel
     full_username = message_object.author.name + "#" + message_object.author.discriminator
 
@@ -122,10 +118,10 @@ async def parse_pm(message_object):
     if num_pms > 1:
         if message_object.content in pm_commands:
             if message_object.content == 'role':
-                pubg_server = client.get_server("289466476187090944")
+                pubg_server = client.get_server(config_data["serverID"])
                 pubg_member = pubg_server.get_member(message_object.author.id)
                 member_roles = pubg_member.roles
-                custom_role_id = "318030585647857665"
+                custom_role_id = config_data["customRoleID"]
 
                 has_role = False
                 for role in member_roles:
@@ -133,24 +129,19 @@ async def parse_pm(message_object):
                         has_role = True
                         break
 
-                if not debug:
-                    if has_role:
-                        pm_text = data["pmResponses"]["rolePresent"]
-                        log_text = message_object.content + " | DM"
-                    else:
-                        custom_role = discord.utils.get(pubg_server.roles, id=custom_role_id)
-                        await client.add_roles(pubg_member, custom_role)
-                        pm_text = data["pmResponses"]["roleSuccess"]
-                        log_text = message_object.content + " | DM | granted new role"
-
-                    log_command(message_object, log_text)
-
+                if has_role:
+                    pm_text = text_data["pmResponses"]["rolePresent"]
+                    log_text = message_object.content + " | DM"
                 else:
-                    print("Role assignment is not available in debug mode.")
-                    pm_text = None                    
+                    custom_role = discord.utils.get(pubg_server.roles, id=custom_role_id)
+                    await client.add_roles(pubg_member, custom_role)
+                    pm_text = text_data["pmResponses"]["roleSuccess"]
+                    log_text = message_object.content + " | DM | granted new role"
+
+                log_command(message_object, log_text) 
 
             else:
-                pm_text = data["pmResponses"][message_object.content]
+                pm_text = text_data["pmResponses"][message_object.content]
             
             if pm_text:
                 await client.send_message(pm_channel, content=pm_text)
@@ -269,21 +260,7 @@ async def region_vote(ctx):
     Hoster has no control over this one; it just adds every region's emoji
     and determines the winner.
     """
-    if debug:
-        region_emoji_ids = [
-                   '409001479555514378', # test1
-                   '409001567069405194' # test2
-                   ]
-    else:
-        region_emoji_ids = [
-                   '333366981959090186',  # Asia
-                   '333366950455672833',  # EU
-                   '379707501282590720',  # KJP
-                   '333366997729411082',  # NA
-                   '333366933657223168',  # OCE
-                   '333366961792876544',  # SA
-                   '333366971586445313',  # SEA
-                   ]
+    region_emoji_ids = config_data["regionEmojis"]
 
 
     customs_channel = get_custom_games()
@@ -376,12 +353,8 @@ async def password_countdown(ctx, password, *args):
     countdown_message = await client.send_message(customs_channel,
                                                   default_text)
 
-    if debug:
-        mods_channel = client.get_channel('382550498533703680')
-        sssc_channel = client.get_channel('382550498533703680')
-    else:
-        mods_channel = client.get_channel('340575221495103498')
-        sssc_channel = client.get_channel('340984090109018113')
+    mods_channel = client.get_channel(config_data["channels"]["mods"])
+    sssc_channel = client.get_channel(config_data["channels"]["sssc"])
     
     for channel_name in [mods_channel, sssc_channel]:
         await client.send_message(channel_name, result_string)
@@ -422,10 +395,7 @@ async def set_voice_limit(ctx, user_limit):
 
     all_channels = client.get_all_channels()
     for channel in all_channels:
-        if debug:
-            server_check = channel.server == client.get_server("114788455069777928")
-        else:
-            server_check = channel.server == client.get_server("289466476187090944")
+        server_check = channel.server == client.get_server(config_data["serverID"])
 
         if channel.name.startswith("\U0001F6E0") and server_check:
             await client.edit_channel(channel, user_limit=voice_limit_int)
@@ -444,41 +414,15 @@ async def full_vote(ctx):
     '''
     rules = json.load(open('fullvote.json'), object_pairs_hook=OrderedDict)
 
-    if debug:
-        emojis = {
-            "Yes": "409001479555514378",
-            "No": "409001567069405194",
-            "Minus_one" : "411542985768042496",
-            "Minus_point_five" : "411559786614882304",
-            "Zero_five" : "411547401518841856",
-            "One_five" : "411549102372028427"
-
-        }
-        emoji_map = {
-            "test1": "On",
-            "test2": "Off",
-            "minus_one" : "-1",
-            "minus_point_five" : "-0.5",
-            "zero_five" : "0.5",
-            "one_five" : "1.5"
-        }
-    else:
-        emojis = {
-            "Yes": "318081582579712000",
-            "No": "318081582344830979",
-            "Minus_one" : "411566329250840597",
-            "Minus_point_five" : "411566343469531136",
-            "Zero_five" : "411566367096045569",
-            "One_five" : "411566380404572161"
-        }
-        emoji_map = {
-            "YES": "On",
-            "NO": "Off",
-            "minus_one" : "-1",
-            "minus_point_five" : "-0.5",
-            "zero_five" : "0.5",
-            "one_five" : "1.5"
-        }
+    emojis = config_data["emojis"]
+    emoji_map = {
+        "YES": "On",
+        "NO": "Off",
+        "minus_one" : "-1",
+        "minus_point_five" : "-0.5",
+        "zero_five" : "0.5",
+        "one_five" : "1.5"
+    }
 
     customs_channel = get_custom_games()
 
@@ -591,10 +535,7 @@ async def remove_messages(ctx, num_messages):
     message_count = 0
     messages_to_remove = []
 
-    if debug:
-        bot_id = '400984104960655362'
-    else:
-        bot_id = '399360578956689409'
+    bot_id = config_data["botID"]
 
     # Defaults to only retrieving 100 messages from #custom-games.
     # Has the potential to cause an issue, but should rarely ever do so.
@@ -622,9 +563,7 @@ async def remove_messages(ctx, num_messages):
 async def help(ctx):
     hoster_channel = ctx.message.channel
 
-    data = json.load(open('bot_text.json'))
-
-    help_text = "\n\n".join(data["helpText"])
+    help_text = "\n\n".join(text_data["helpText"])
 
     help_embed = discord.Embed(title="CustomsBot available commands",
                                description=help_text)
@@ -640,17 +579,4 @@ async def on_command_error(error, ctx):
     else:
         print(error)
 
-# Debugging suppresses #mods and #super-secret-sub-club messages and
-# treats #bot-testing in SamWalton's Discord server as both #custom-games
-# and #custom-hosters.
-debug = False
-
-if debug == True:
-    token_file = 'test_bot_token'
-else:
-    token_file = 'bot_token'
-
-with open(token_file) as f:
-    token = f.readline().strip()
-
-client.run(token)
+client.run(config_data["botToken"])

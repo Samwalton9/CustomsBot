@@ -1,0 +1,27 @@
+{
+	"serverID": "The ID of your server",
+	"botID": "Your bot's ID",
+	"botToken": "Your bot token",
+	"customRoleID": "The ID of the 'custom' role on your server",
+	"channels": {
+		"hoster": "ID for the custom hoster channel",
+		"customgames": "ID for the custom games channel",
+		"mods": "ID for the mods channel",
+		"sssc": "ID for the subscriber channel"
+	},
+	"emojis": {
+        "Yes": "ID for YES emoji",
+        "No": "ID for NO emoji",
+        "Minus_one" : "ID for -1 emoji",
+        "Minus_point_five" : "ID for -0.5 emoji",
+        "Zero_five" : "ID for 0.5 emoji",
+        "One_five" : "ID for 1.5 emoji"
+	},
+	"regionEmojis": [
+                   "List",
+                   "Of",
+                   "Region",
+                   "Emoji",
+                   "IDs"
+               ]
+}
