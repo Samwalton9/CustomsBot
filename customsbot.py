@@ -624,7 +624,7 @@ async def help(ctx):
 
     data = json.load(open('bot_text.json'))
 
-    help_text = data["helpText"]
+    help_text = "\n\n".join(data["helpText"])
 
     help_embed = discord.Embed(title="CustomsBot available commands",
                                description=help_text)
