@@ -643,7 +643,7 @@ async def on_command_error(error, ctx):
 # Debugging suppresses #mods and #super-secret-sub-club messages and
 # treats #bot-testing in SamWalton's Discord server as both #custom-games
 # and #custom-hosters.
-debug = True
+debug = False
 
 if debug == True:
     token_file = 'test_bot_token'
