@@ -440,6 +440,7 @@ async def set_voice_limit(ctx, user_limit):
 async def full_vote(ctx):
     '''
     Full ruleset voting for the game mode "We'll do it live".
+    Gets settings and emojis from fullvote.json.
     '''
     rules = json.load(open('fullvote.json'), object_pairs_hook=OrderedDict)
 
@@ -484,7 +485,7 @@ async def full_vote(ctx):
     for rule, rule_options in rules.items():
         rule_message = await client.send_message(customs_channel,
                                                  content=rule_options['input'])
-        # Save the message in the dict for later
+        # Save this rule's message ID in the dict for later
         rules[rule]['message_id'] = rule_message.id
 
         for emoji in rule_options['emojis']:
@@ -544,6 +545,25 @@ async def full_vote(ctx):
 
     await client.send_message(customs_channel,
                               content= announcement_str + gamemode_message)
+
+@client.command(name='stream', pass_context=True)
+@hoster_only()
+async def stream_toggle(ctx, toggle):
+    """
+    Used to toggle the bot's streaming presence.
+    """
+    hoster_channel = ctx.message.channel
+
+    if toggle == "start":
+        game_presence = discord.Game(name="Custom games", url="https://twitch.tv/pubgreddit", type=1)
+    elif toggle == "stop":
+        game_presence = discord.Game(name="DM for info")
+    else:
+        error_message = "Please use either 'stop' or 'start'."
+        await client.send_message(hoster_channel, error_message)
+        return
+
+    await client.change_presence(game=game_presence)
 
 @client.command(name='clear', pass_context=True)
 @hoster_only()
@@ -623,7 +643,7 @@ async def on_command_error(error, ctx):
 # Debugging suppresses #mods and #super-secret-sub-club messages and
 # treats #bot-testing in SamWalton's Discord server as both #custom-games
 # and #custom-hosters.
-debug = False
+debug = True
 
 if debug == True:
     token_file = 'test_bot_token'
