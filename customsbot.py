@@ -6,8 +6,12 @@ import random
 import os
 import json
 from collections import OrderedDict
+from twitch import TwitchClient
 
-client = commands.Bot(command_prefix='$')
+config_data = json.load(open('config.json'))
+
+discord_client = commands.Bot(command_prefix='$')
+twitch_client = TwitchClient(client_id= config_data["twitchClientID"])
 
 """Checks if the logs folder exists, creates it if not."""
 folder_exists = os.path.isdir("logs")
@@ -15,23 +19,41 @@ if not folder_exists:
         os.mkdir("logs")
 
 # Stop inbuilt $help overriding ours.
-client.remove_command('help')
+discord_client.remove_command('help')
 
-config_data = json.load(open('config.json'))
 text_data = json.load(open('bot_text.json'))
 
 def hoster_only():
     """Trust commands from #custom-hosters only"""
     def predicate(ctx):
         customs_channel = get_custom_games()
-        hoster_channel = client.get_channel(config_data["channels"]["hoster"])
+        hoster_channel = discord_client.get_channel(config_data["channels"]["hoster"])
 
         return ctx.message.channel == hoster_channel
     return commands.check(predicate)
 
+async def twitch_check(previous_presence=None):
+    while True:
+        pubgreddit_stream = twitch_client.streams.get_stream_by_user('153910806')
+
+        if pubgreddit_stream is not None:
+            game_presence = discord.Game(name="Custom games",
+                                         url="https://twitch.tv/pubgreddit",
+                                         type=1)
+        else:
+            game_presence = discord.Game(name="DM for info")
+
+        #Only update the presence if it changed since last time
+        if previous_presence != game_presence:
+            await discord_client.change_presence(game=game_presence)
+
+        previous_presence = game_presence
+
+        await asyncio.sleep(300)
+
 def get_custom_games():
     """Returns #custom-games object"""
-    customs_channel = client.get_channel(config_data["channels"]["customgames"])
+    customs_channel = discord_client.get_channel(config_data["channels"]["customgames"])
 
     return customs_channel
 
@@ -84,17 +106,19 @@ def get_countdown_string(timedelta_object):
     countdown_timer_string = ":".join(countdown_timer_split[1:])
     return countdown_timer_string.split(".")[0]  # Without decimal
 
-@client.event
+@discord_client.event
 async def on_ready():
-    await client.change_presence(game=discord.Game(name="DM for info"))
+    #await discord_client.change_presence(game=discord.Game(name="DM for info"))
 
-    print('Logged in as', client.user.name)
+    print('Logged in as', discord_client.user.name)
     print('\nLogged in to the following servers:')
-    for server in client.servers:
+    for server in discord_client.servers:
         print(server.name)
     print('-----')
 
-@client.event
+    await twitch_check()
+
+@discord_client.event
 async def on_message(message):
     # Handle DMs to the bot
     if message.server is None and not message.author.bot:
@@ -102,7 +126,7 @@ async def on_message(message):
     else:
         # Since we're overriding default on_message behaviour for the
         # commands extension, this line is required.
-        await client.process_commands(message)
+        await discord_client.process_commands(message)
 
 async def parse_pm(message_object):
 
@@ -111,13 +135,13 @@ async def parse_pm(message_object):
     pm_channel = message_object.channel
 
     num_pms = 0
-    async for pm_message in client.logs_from(pm_channel, limit=2):
+    async for pm_message in discord_client.logs_from(pm_channel, limit=2):
         num_pms += 1
 
     if num_pms > 1:
         if message_object.content in pm_commands:
             if message_object.content == 'role':
-                pubg_server = client.get_server(config_data["serverID"])
+                pubg_server = discord_client.get_server(config_data["serverID"])
                 pubg_member = pubg_server.get_member(message_object.author.id)
                 member_roles = pubg_member.roles
                 custom_role_id = config_data["customRoleID"]
@@ -133,7 +157,7 @@ async def parse_pm(message_object):
                     log_text = message_object.content + " | DM"
                 else:
                     custom_role = discord.utils.get(pubg_server.roles, id=custom_role_id)
-                    await client.add_roles(pubg_member, custom_role)
+                    await discord_client.add_roles(pubg_member, custom_role)
                     pm_text = text_data["pmResponses"]["roleSuccess"]
                     log_text = message_object.content + " | DM | granted new role"
 
@@ -143,16 +167,16 @@ async def parse_pm(message_object):
                 pm_text = text_data["pmResponses"][message_object.content]
             
             if pm_text:
-                await client.send_message(pm_channel, content=pm_text)
+                await discord_client.send_message(pm_channel, content=pm_text)
         else:
             error_message = "Sorry, I don't recognise that command."
-            await client.send_message(pm_channel, content=error_message)
+            await discord_client.send_message(pm_channel, content=error_message)
             log_command(message_object, message_object.content + " | DM", error=True)
     else:
-        await client.send_message(pm_channel, content=pm_response)
+        await discord_client.send_message(pm_channel, content=pm_response)
         log_command(message_object, "Sent instructions | DM")
 
-@client.command(name='squadvote', aliases=['sqv'], pass_context=True)
+@discord_client.command(name='squadvote', aliases=['sqv'], pass_context=True)
 @hoster_only()
 async def squad_vote(ctx, *args):
     """
@@ -183,7 +207,7 @@ async def squad_vote(ctx, *args):
             except ValueError:
                 error_message = ("Error: Please only use integers"
                                  " as arguments for `squadvote`.")
-                await client.send_message(message_channel,
+                await discord_client.send_message(message_channel,
                                           content= error_message)
                 return
 
@@ -192,7 +216,7 @@ async def squad_vote(ctx, *args):
             if not squads_correct_range:
                 error_message = ("Error: Please only use integers"
                                  " between 1 and 10 for `squadvote`.")
-                await client.send_message(message_channel,
+                await discord_client.send_message(message_channel,
                                           content= error_message)
                 return
 
@@ -202,7 +226,7 @@ async def squad_vote(ctx, *args):
                           "\nTimer: {}")
     default_message = squad_vote_message.format("02:00")
     
-    sent_squad_message = await client.send_message(customs_channel,
+    sent_squad_message = await discord_client.send_message(customs_channel,
                                                    content= default_message)
 
     for squad_size_int in squad_sizes_selected:
@@ -211,12 +235,12 @@ async def squad_vote(ctx, *args):
         else:
             emoji = str(squad_size_int) + "\U000020e3"
 
-        await client.add_reaction(sent_squad_message, emoji)
+        await discord_client.add_reaction(sent_squad_message, emoji)
 
-    here_ping = await client.send_message(customs_channel,
+    here_ping = await discord_client.send_message(customs_channel,
                                           content="@here")
 
-    await client.send_message(message_channel,
+    await discord_client.send_message(message_channel,
                               content= "Squad size vote successfully posted.")
     log_command(message_object, "Squad vote")
 
@@ -227,11 +251,11 @@ async def squad_vote(ctx, *args):
         countdown_timer_string = get_countdown_string(countdown_timer)
         await asyncio.sleep(1)
         new_message = squad_vote_message.format(countdown_timer_string)
-        await client.edit_message(sent_squad_message, new_message)
+        await discord_client.edit_message(sent_squad_message, new_message)
 
-    sent_squad_message = await client.get_message(customs_channel,
+    sent_squad_message = await discord_client.get_message(customs_channel,
                                                   sent_squad_message.id)
-    await client.clear_reactions(sent_squad_message)
+    await discord_client.clear_reactions(sent_squad_message)
 
     squad_selected = most_reactions(sent_squad_message)
 
@@ -239,9 +263,9 @@ async def squad_vote(ctx, *args):
 
     squad_message_finished = "Squad size vote over. Result: {}".format(squad_result)
 
-    await client.edit_message(sent_squad_message, squad_message_finished)
+    await discord_client.edit_message(sent_squad_message, squad_message_finished)
 
-    await client.delete_message(here_ping)
+    await discord_client.delete_message(here_ping)
 
     if len(squad_selected) > 1:
         voice_limit_int = int(squad_selected[:-1])  # Unicode to int
@@ -250,7 +274,7 @@ async def squad_vote(ctx, *args):
 
     await ctx.invoke(set_voice_limit, user_limit=voice_limit_int)
 
-@client.command(name='regionvote', aliases=['rv'], pass_context=True)
+@discord_client.command(name='regionvote', aliases=['rv'], pass_context=True)
 @hoster_only()
 async def region_vote(ctx):
     """
@@ -267,19 +291,19 @@ async def region_vote(ctx):
     region_vote_message = ("Which region should we host today's games on?"
                            "\nTimer: {}")
     default_region_message = region_vote_message.format("02:00")
-    region_message = await client.send_message(customs_channel,
+    region_message = await discord_client.send_message(customs_channel,
                                                content= default_region_message)
 
     for region_emoji in region_emoji_ids:
-        region_emoji_obj = discord.utils.get(client.get_all_emojis(),
+        region_emoji_obj = discord.utils.get(discord_client.get_all_emojis(),
                                              id=region_emoji)
-        await client.add_reaction(region_message, region_emoji_obj)
+        await discord_client.add_reaction(region_message, region_emoji_obj)
 
-    here_ping = await client.send_message(customs_channel,
+    here_ping = await discord_client.send_message(customs_channel,
                                           content="@here")
 
     message_channel = ctx.message.channel
-    await client.send_message(message_channel,
+    await discord_client.send_message(message_channel,
                               "Region vote successfully posted.")
     log_command(ctx.message, "Region vote")
     time_to_post = datetime.datetime.now() + datetime.timedelta(seconds=120)
@@ -289,22 +313,22 @@ async def region_vote(ctx):
         countdown_timer_string = get_countdown_string(countdown_timer)
         await asyncio.sleep(1)
         new_message = region_vote_message.format(countdown_timer_string)
-        await client.edit_message(region_message, new_message)
+        await discord_client.edit_message(region_message, new_message)
 
-    region_message = await client.get_message(customs_channel,
+    region_message = await discord_client.get_message(customs_channel,
                                               region_message.id)
-    await client.clear_reactions(region_message)
+    await discord_client.clear_reactions(region_message)
     region_selected = most_reactions(region_message)
 
     region_result = region_selected
 
     region_message_finished = "Region vote over. Result: {}".format(region_result)
 
-    await client.delete_message(here_ping)
+    await discord_client.delete_message(here_ping)
 
-    await client.edit_message(region_message, region_message_finished)
+    await discord_client.edit_message(region_message, region_message_finished)
 
-@client.command(name='password', pass_context=True)
+@discord_client.command(name='password', pass_context=True)
 @hoster_only()
 async def password_countdown(ctx, password, *args):
     """
@@ -319,7 +343,7 @@ async def password_countdown(ctx, password, *args):
 
     if not password:
         error_message = "Error: Please enter a password."
-        await client.send_message(message_channel, content=error_message)
+        await discord_client.send_message(message_channel, content=error_message)
         return
 
     if len(args) == 0:
@@ -330,11 +354,11 @@ async def password_countdown(ctx, password, *args):
         except ValueError:
             error_message = ("Error: Please use an integer to denote the "
                              "countdown length for `password`.")
-            await client.send_message(message_channel, content=error_message)
+            await discord_client.send_message(message_channel, content=error_message)
             return
     else:
         error_message = ("Error: Too many arguments.")
-        await client.send_message(message_channel, content=error_message)
+        await discord_client.send_message(message_channel, content=error_message)
         return
 
     customs_channel = get_custom_games()
@@ -349,16 +373,16 @@ async def password_countdown(ctx, password, *args):
     default_text = template_string.format("[" + countdown_timer_string + "]")
     result_string = template_string.format(password)
 
-    countdown_message = await client.send_message(customs_channel,
+    countdown_message = await discord_client.send_message(customs_channel,
                                                   default_text)
 
-    mods_channel = client.get_channel(config_data["channels"]["mods"])
-    sssc_channel = client.get_channel(config_data["channels"]["sssc"])
+    mods_channel = discord_client.get_channel(config_data["channels"]["mods"])
+    sssc_channel = discord_client.get_channel(config_data["channels"]["sssc"])
     
     for channel_name in [mods_channel, sssc_channel]:
-        await client.send_message(channel_name, result_string)
+        await discord_client.send_message(channel_name, result_string)
         if channel_name == sssc_channel:
-            await client.send_message(channel_name, content="@here")
+            await discord_client.send_message(channel_name, content="@here")
 
     log_command(ctx.message, "Password")
 
@@ -368,12 +392,12 @@ async def password_countdown(ctx, password, *args):
         await asyncio.sleep(1)
         string_bracketed = "[" + countdown_timer_string + "]"
         new_message = template_string.format(string_bracketed)
-        await client.edit_message(countdown_message, new_message)
+        await discord_client.edit_message(countdown_message, new_message)
 
-    await client.edit_message(countdown_message, result_string)
-    await client.send_message(customs_channel, content="@here")
+    await discord_client.edit_message(countdown_message, result_string)
+    await discord_client.send_message(customs_channel, content="@here")
 
-@client.command(name='setvoicelimit', pass_context=True)
+@discord_client.command(name='setvoicelimit', pass_context=True)
 @hoster_only()
 async def set_voice_limit(ctx, user_limit):
     """
@@ -389,22 +413,22 @@ async def set_voice_limit(ctx, user_limit):
     except ValueError:
         error_message = ("Error: Please use an integer to denote "
                          "the size of voice channels.")  
-        await client.send_message(message_channel, content=error_message)
+        await discord_client.send_message(message_channel, content=error_message)
         return
 
-    all_channels = client.get_all_channels()
+    all_channels = discord_client.get_all_channels()
     for channel in all_channels:
-        server_check = channel.server == client.get_server(config_data["serverID"])
+        server_check = channel.server == discord_client.get_server(config_data["serverID"])
 
         if channel.name.startswith("\U0001F6E0") and server_check:
-            await client.edit_channel(channel, user_limit=voice_limit_int)
+            await discord_client.edit_channel(channel, user_limit=voice_limit_int)
 
     voice_limit_message = "Set custom games voice channels to new user limit of {}."
     voice_message = voice_limit_message.format(voice_limit_int)
 
-    await client.send_message(message_channel, content=voice_message)
+    await discord_client.send_message(message_channel, content=voice_message)
 
-@client.command(name='fullvote', aliases=['fv'], pass_context=True)
+@discord_client.command(name='fullvote', aliases=['fv'], pass_context=True)
 @hoster_only()
 async def full_vote(ctx):
     '''
@@ -426,7 +450,7 @@ async def full_vote(ctx):
     customs_channel = get_custom_games()
 
     for rule, rule_options in rules.items():
-        rule_message = await client.send_message(customs_channel,
+        rule_message = await discord_client.send_message(customs_channel,
                                                  content=rule_options['input'])
         # Save this rule's message ID in the dict for later
         rules[rule]['message_id'] = rule_message.id
@@ -438,16 +462,16 @@ async def full_vote(ctx):
                 else:
                     emoji_to_add = str(emoji) + "\U000020e3"
             else:
-                emoji_to_add = discord.utils.get(client.get_all_emojis(),
+                emoji_to_add = discord.utils.get(discord_client.get_all_emojis(),
                                                  id=emojis[emoji])
-            await client.add_reaction(rule_message, emoji_to_add)
+            await discord_client.add_reaction(rule_message, emoji_to_add)
 
     template_timer = "Timer: {}"
     default_timer_message = template_timer.format("03:00")
-    timer_message = await client.send_message(customs_channel,
+    timer_message = await discord_client.send_message(customs_channel,
                                                content= default_timer_message)
     
-    here_ping = await client.send_message(customs_channel,
+    here_ping = await discord_client.send_message(customs_channel,
                                           content="@here")
 
     time_to_post = datetime.datetime.now() + datetime.timedelta(seconds=180)
@@ -457,16 +481,16 @@ async def full_vote(ctx):
         countdown_timer_string = get_countdown_string(countdown_timer)
         await asyncio.sleep(1)
         new_message = template_timer.format(countdown_timer_string)
-        await client.edit_message(timer_message, new_message)
+        await discord_client.edit_message(timer_message, new_message)
 
-    await client.delete_message(here_ping)
-    await client.delete_message(timer_message)
+    await discord_client.delete_message(here_ping)
+    await discord_client.delete_message(timer_message)
 
     gamemode_message = ""
     announcement_str = "Vote over! The game mode, not including options with default values, will be:\n"
 
     for rule, rule_options in rules.items():
-        vote_message = await client.get_message(customs_channel,
+        vote_message = await discord_client.get_message(customs_channel,
                                                 rules[rule]['message_id'])
         winning_emoji = most_reactions(vote_message)
 
@@ -484,31 +508,12 @@ async def full_vote(ctx):
             this_output = rules[rule]['output'] + ": {}".format(emoji_str) + rules[rule]['units']
             gamemode_message += this_output
 
-        await client.delete_message(vote_message)
+        await discord_client.delete_message(vote_message)
 
-    await client.send_message(customs_channel,
+    await discord_client.send_message(customs_channel,
                               content= announcement_str + gamemode_message)
 
-@client.command(name='stream', pass_context=True)
-@hoster_only()
-async def stream_toggle(ctx, toggle):
-    """
-    Used to toggle the bot's streaming presence.
-    """
-    hoster_channel = ctx.message.channel
-
-    if toggle == "start":
-        game_presence = discord.Game(name="Custom games", url="https://twitch.tv/pubgreddit", type=1)
-    elif toggle == "stop":
-        game_presence = discord.Game(name="DM for info")
-    else:
-        error_message = "Please use either 'stop' or 'start'."
-        await client.send_message(hoster_channel, error_message)
-        return
-
-    await client.change_presence(game=game_presence)
-
-@client.command(name='clear', pass_context=True)
+@discord_client.command(name='clear', pass_context=True)
 @hoster_only()
 async def remove_messages(ctx, num_messages):
     """
@@ -526,7 +531,7 @@ async def remove_messages(ctx, num_messages):
         except ValueError:
             error_message = ("Error: Please use an integer to denote the"
                              " number of messages to clear.")
-            await client.send_message(message_channel, content=error_message)
+            await discord_client.send_message(message_channel, content=error_message)
             return
     
     customs_channel = get_custom_games()
@@ -538,7 +543,7 @@ async def remove_messages(ctx, num_messages):
 
     # Defaults to only retrieving 100 messages from #custom-games.
     # Has the potential to cause an issue, but should rarely ever do so.
-    async for message in client.logs_from(customs_channel):
+    async for message in discord_client.logs_from(customs_channel):
         if message.author.id == bot_id:
             if num_messages == 'all':
                 messages_to_remove.append(message)
@@ -549,15 +554,15 @@ async def remove_messages(ctx, num_messages):
                     break
 
     for customsbot_message in messages_to_remove:
-        await client.delete_message(customsbot_message)
+        await discord_client.delete_message(customsbot_message)
 
     confirmation_text = "Removed {} CustomsBot messages from #custom-games."
     confirmation_text = confirmation_text.format(num_messages)
-    await client.send_message(message_channel, confirmation_text)
+    await discord_client.send_message(message_channel, confirmation_text)
 
     log_command(ctx.message, "Remove messages ({})".format(num_messages))
 
-@client.command(name='help', pass_context=True)
+@discord_client.command(name='help', pass_context=True)
 @hoster_only()
 async def help(ctx):
     hoster_channel = ctx.message.channel
@@ -567,15 +572,15 @@ async def help(ctx):
     help_embed = discord.Embed(title="CustomsBot available commands",
                                description=help_text)
 
-    await client.send_message(hoster_channel, embed=help_embed)
+    await discord_client.send_message(hoster_channel, embed=help_embed)
 
-@client.event
+@discord_client.event
 async def on_command_error(error, ctx):
     if isinstance(error, commands.MissingRequiredArgument):
         message_channel = ctx.message.channel
-        await client.send_message(message_channel,
+        await discord_client.send_message(message_channel,
                                   content= 'Required argument(s) missing.')
     else:
         print(error)
 
-client.run(config_data["botToken"])
+discord_client.run(config_data["botToken"])

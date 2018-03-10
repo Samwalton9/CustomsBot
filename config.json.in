@@ -23,5 +23,6 @@
                    "Region",
                    "Emoji",
                    "IDs"
-               ]
+               ],
+  "twitchClientID": "Your Twitch API Client ID"
 }
