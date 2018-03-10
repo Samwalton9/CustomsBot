@@ -109,7 +109,6 @@ async def parse_pm(message_object):
     pm_commands = ['role', 'schedule', 'twitch', 'forms']
     pm_response = text_data["pmResponses"]["primary"]
     pm_channel = message_object.channel
-    full_username = message_object.author.name + "#" + message_object.author.discriminator
 
     num_pms = 0
     async for pm_message in client.logs_from(pm_channel, limit=2):
@@ -138,7 +137,7 @@ async def parse_pm(message_object):
                     pm_text = text_data["pmResponses"]["roleSuccess"]
                     log_text = message_object.content + " | DM | granted new role"
 
-                log_command(message_object, log_text) 
+                log_command(message_object, log_text)
 
             else:
                 pm_text = text_data["pmResponses"][message_object.content]
@@ -146,12 +145,12 @@ async def parse_pm(message_object):
             if pm_text:
                 await client.send_message(pm_channel, content=pm_text)
         else:
-            log_command(message_object, message_object.content + " | DM", error=True)
             error_message = "Sorry, I don't recognise that command."
             await client.send_message(pm_channel, content=error_message)
+            log_command(message_object, message_object.content + " | DM", error=True)
     else:
-        print("Sent instructions to", message_object.author.name)
         await client.send_message(pm_channel, content=pm_response)
+        log_command(message_object, "Sent instructions | DM")
 
 @client.command(name='squadvote', aliases=['sqv'], pass_context=True)
 @hoster_only()
