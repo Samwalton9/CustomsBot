@@ -16,6 +16,8 @@ You will need to create custom games voice channel(s) with names starting with t
 
 Rename `config.json.in` to `config.json` and fill out the required fields before running. Every field (including IDs) should be a string.
 
+To get a Twitch Client ID follow the instructions at https://dev.twitch.tv/docs/authentication#registration.
+
 ### Permissions
 
 You should give the following permissions to your bot for it to run properly:
