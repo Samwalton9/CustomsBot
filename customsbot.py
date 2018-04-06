@@ -343,7 +343,7 @@ async def password_countdown(ctx, password, *args):
     pinging @here in SSSC only.
 
     Hoster must specify a password, and may optionally specify the number
-    of minutes until the password is released. Defaults to 5 minutes.
+    of minutes until the password is released. Defaults to 2 minutes.
     """
     message_channel = ctx.message.channel
 
