@@ -16,6 +16,6 @@
 		"forms": "The game modes we play are usually taken from this list, which we continue to expand with new modes: <https://goo.gl/JU1ds1> You can suggest new modes using this form: <https://goo.gl/forms/b8AZGpSQpvkj1suj1>\n\nIf you have experience streaming games on Twitch (with a solid internet connection and a PC good enough to handle it), and have the availability to host at least approximately once per week, please let us know by filling out this form: <https://goo.gl/forms/H1QrCeS2KZ1JB8IE3>"
 	},
 	"chatResponses": {
-		"schedule": "A full schedule of upcoming games can be found at <https://goo.gl/TQ8GoH>\n\nThe schedule should be shown in your time zone, but you can verify this by checking the menu in the top right.\n\n*If the schedule appears to be blank, we may not have any games currently planned. Check back soon to see if we've added any!*"
+		"schedule": "A full schedule of upcoming games can be found at <https://goo.gl/TQ8GoH>. *If there's nothing on the schedule, nothing is scheduled.*"
 	}
 }

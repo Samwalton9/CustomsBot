@@ -584,9 +584,9 @@ async def help(ctx):
 async def schedule(ctx):
     schedule_text = text_data["chatResponses"]["schedule"]
     message_channel = ctx.message.channel
-    await discord_client.delete_message(ctx.message)
     await discord_client.send_message(message_channel, content=schedule_text)
-    return
+    await discord_client.delete_message(ctx.message)
+    log_command(ctx.message, "Schedule info posted")
 
 @discord_client.event
 async def on_command_error(error, ctx):
