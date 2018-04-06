@@ -57,6 +57,12 @@ def get_custom_games():
 
     return customs_channel
 
+def get_custom_chat():
+    """Returns #custom-chat-lfg object"""
+    customchat_channel = discord_client.get_channel(config_data["channels"]["customchat"])
+
+    return customschat_channel
+
 def log_command(message_object, text, error=False):
     """Whenever a command is sent, log it to today's log file"""
     current_folder = os.path.dirname(__file__)
@@ -573,6 +579,14 @@ async def help(ctx):
                                description=help_text)
 
     await discord_client.send_message(hoster_channel, embed=help_embed)
+
+@discord_client.command(name='schedule', pass_context=True)
+async def schedule(ctx):
+    schedule_text = text_data["chatResponses"]["schedule"]
+    message_channel = ctx.message.channel
+    await discord_client.delete_message(ctx.message)
+    await discord_client.send_message(message_channel, content=schedule_text)
+    return
 
 @discord_client.event
 async def on_command_error(error, ctx):
