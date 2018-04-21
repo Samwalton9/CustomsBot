@@ -6,7 +6,6 @@
 	"channels": {
 		"hoster": "ID for the custom hoster channel",
 		"customgames": "ID for the custom games channel",
-		"customchat": "ID for the custom chat channel",
 		"mods": "ID for the mods channel",
 		"sssc": "ID for the subscriber channel"
 	},

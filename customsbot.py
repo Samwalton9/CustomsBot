@@ -62,12 +62,6 @@ def get_custom_games():
 
     return customs_channel
 
-def get_custom_chat():
-    """Returns #custom-chat-lfg object"""
-    customchat_channel = discord_client.get_channel(config_data["channels"]["customchat"])
-
-    return customschat_channel
-
 def log_command(message_object, text, error=False):
     """Whenever a command is sent, log it to today's log file"""
     file_path = os.path.join(file_path, 'logs')
