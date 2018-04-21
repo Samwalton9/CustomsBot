@@ -10,20 +10,23 @@ from twitch import TwitchClient
 
 file_path = os.path.dirname(__file__)
 
-config_data = json.load(open(os.path.join(file_path, 'config.json')))
+config_path = os.path.join(file_path, 'config.json')
+config_data = json.load(open(config_path))
 
 discord_client = commands.Bot(command_prefix='$')
 twitch_client = TwitchClient(client_id= config_data["twitchClientID"])
 
-"""Checks if the logs folder exists, creates it if not."""
-folder_exists = os.path.isdir(os.path.join(file_path,"logs"))
+#Checks if the logs folder exists, creates it if not.
+log_folder = os.path.join(file_path,"logs")
+folder_exists = os.path.isdir(log_folder)
 if not folder_exists:
-        os.mkdir(os.path.join(file_path, "logs"))
+        os.mkdir(log_folder)
 
 # Stop inbuilt $help overriding ours.
 discord_client.remove_command('help')
 
-text_data = json.load(open(os.path.join(file_path,'bot_text.json')))
+bot_text_path = os.path.join(file_path,'bot_text.json')
+text_data = json.load(open(bot_text_path))
 
 def hoster_only():
     """Trust commands from #custom-hosters only"""
