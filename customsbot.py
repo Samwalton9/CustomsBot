@@ -8,20 +8,22 @@ import json
 from collections import OrderedDict
 from twitch import TwitchClient
 
-config_data = json.load(open('config.json'))
+file_path = os.path.dirname(__file__)
+
+config_data = json.load(open(os.path.join(file_path, 'config.json')))
 
 discord_client = commands.Bot(command_prefix='$')
 twitch_client = TwitchClient(client_id= config_data["twitchClientID"])
 
 """Checks if the logs folder exists, creates it if not."""
-folder_exists = os.path.isdir("logs")
+folder_exists = os.path.isdir(os.path.join(file_path,"logs"))
 if not folder_exists:
-        os.mkdir("logs")
+        os.mkdir(os.path.join(file_path, "logs"))
 
 # Stop inbuilt $help overriding ours.
 discord_client.remove_command('help')
 
-text_data = json.load(open('bot_text.json'))
+text_data = json.load(open(os.path.join(file_path,'bot_text.json')))
 
 def hoster_only():
     """Trust commands from #custom-hosters only"""
@@ -59,8 +61,7 @@ def get_custom_games():
 
 def log_command(message_object, text, error=False):
     """Whenever a command is sent, log it to today's log file"""
-    current_folder = os.path.dirname(__file__)
-    file_path = os.path.join(current_folder, 'logs')
+    file_path = os.path.join(file_path, 'logs')
     file_name = datetime.datetime.now().strftime("%Y%m%d") + ".txt"
 
     logfile = os.path.join(file_path, file_name)
@@ -435,7 +436,7 @@ async def full_vote(ctx):
     Full ruleset voting for the game mode "We'll do it live".
     Gets settings and emojis from fullvote.json.
     '''
-    rules = json.load(open('fullvote.json'), object_pairs_hook=OrderedDict)
+    rules = json.load(open(os.path.join(file_path,'fullvote.json')), object_pairs_hook=OrderedDict)
 
     emojis = config_data["emojis"]
     emoji_map = {
