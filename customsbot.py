@@ -64,10 +64,10 @@ def get_custom_games():
 
 def log_command(message_object, text, error=False):
     """Whenever a command is sent, log it to today's log file"""
-    file_path = os.path.join(file_path, 'logs')
+    log_path = os.path.join(file_path, 'logs')
     file_name = datetime.datetime.now().strftime("%Y%m%d") + ".txt"
 
-    logfile = os.path.join(file_path, file_name)
+    logfile = os.path.join(log_path, file_name)
 
     if error:
         status = "| Incorrect command"
