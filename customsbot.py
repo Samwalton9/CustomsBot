@@ -62,6 +62,12 @@ def get_custom_games():
 
     return customs_channel
 
+def get_custom_chat():
+    """Returns #custom-chat-lfg object"""
+    customchat_channel = discord_client.get_channel(config_data["channels"]["customchat"])
+
+    return customschat_channel
+
 def log_command(message_object, text, error=False):
     """Whenever a command is sent, log it to today's log file"""
     file_path = os.path.join(file_path, 'logs')
@@ -341,7 +347,7 @@ async def password_countdown(ctx, password, *args):
     pinging @here in SSSC only.
 
     Hoster must specify a password, and may optionally specify the number
-    of minutes until the password is released. Defaults to 5 minutes.
+    of minutes until the password is released. Defaults to 2 minutes.
     """
     message_channel = ctx.message.channel
 
@@ -577,6 +583,14 @@ async def help(ctx):
                                description=help_text)
 
     await discord_client.send_message(hoster_channel, embed=help_embed)
+
+@discord_client.command(name='schedule', pass_context=True)
+async def schedule(ctx):
+    schedule_text = text_data["chatResponses"]["schedule"]
+    message_channel = ctx.message.channel
+    await discord_client.send_message(message_channel, content=schedule_text)
+    await discord_client.delete_message(ctx.message)
+    log_command(ctx.message, "Schedule info posted")
 
 @discord_client.event
 async def on_command_error(error, ctx):
