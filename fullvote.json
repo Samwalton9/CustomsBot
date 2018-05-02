@@ -138,5 +138,19 @@
 		"output": "Armor spawn rate",
 		"units": "x",
 		"default": "1"
+	},
+	"Perspective": {
+		"input": "Perspective (First or Third)",
+		"emojis": [1, 3],
+		"output": "Perspective",
+		"units": "",
+		"default": "3"
+	},
+	"Map": {
+		"input": "Map (Erangel or Miramar)",
+		"emojis": ["Erangel", "Miramar"],
+		"output": "Map (Erangel or Miramar)",
+		"units": "",
+		"default": "Erangel"
 	}
 }

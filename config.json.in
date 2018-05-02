@@ -15,7 +15,9 @@
         "Minus_one" : "ID for -1 emoji",
         "Minus_point_five" : "ID for -0.5 emoji",
         "Zero_five" : "ID for 0.5 emoji",
-        "One_five" : "ID for 1.5 emoji"
+        "One_five" : "ID for 1.5 emoji",
+	"Erangel" : "ID for Erangel emoji",
+	"Miramar" : "ID for Miramar emoji"
 	},
 	"regionEmojis": [
                    "List",
