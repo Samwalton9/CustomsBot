@@ -401,6 +401,58 @@ async def password_countdown(ctx, password, *args):
     await discord_client.edit_message(countdown_message, result_string)
     await discord_client.send_message(customs_channel, content="@here")
 
+@discord_client.command(name='countdown', pass_context=True)
+@hoster_only()
+async def countdown_timer(ctx, *args):
+    """
+    Starts a countdown to when the game will begin, in #custom-games.
+    
+    Hoster must start the game once countdown has hit 00:00 or "Game Started".
+
+    Default time: 2 minutes
+    """
+    message_channel = ctx.message.channel
+
+    if len(args) == 0:
+        num_seconds = 120
+    elif len(args) == 1:
+        try:
+            num_seconds = int(args[0])*60
+        except ValueError:
+            error_message = ("Error: Please use an integer to denote the "
+                             "countdown length.")
+            await discord_client.send_message(message_channel, content=error_message)
+            return
+    else:
+        error_message = ("Error: Too many arguments.")
+        await discord_client.send_message(message_channel, content=error_message)
+        return
+
+    customs_channel = get_custom_games()
+
+    current_time = datetime.datetime.now()
+    time_to_post = current_time + datetime.timedelta(seconds=num_seconds)
+    countdown_timer = time_to_post - datetime.datetime.now()
+    countdown_timer_string = get_countdown_string(countdown_timer)
+
+    template_string = "The next game will begin in: {} @here"
+
+    default_text = template_string.format("[" + countdown_timer_string + "]")
+
+    countdown_message = await discord_client.send_message(customs_channel,
+                                                  default_text)
+
+    while datetime.datetime.now() < time_to_post:
+        countdown_timer = time_to_post - datetime.datetime.now()
+        countdown_timer_string = get_countdown_string(countdown_timer)
+        await asyncio.sleep(1)
+        string_bracketed = "[" + countdown_timer_string + "]"
+        new_message = template_string.format(string_bracketed)
+        await discord_client.edit_message(countdown_message, new_message)
+
+    await discord_client.delete_message(countdown_message)
+    await discord_client.send_message(customs_channel, content="Game Started! @here")
+
 @discord_client.command(name='setvoicelimit', pass_context=True)
 @hoster_only()
 async def set_voice_limit(ctx, user_limit):
