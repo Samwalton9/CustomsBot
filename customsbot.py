@@ -337,7 +337,7 @@ async def region_vote(ctx):
 async def password_countdown(ctx, password, *args):
     """
     Starts a countdown to password release in #custom-games. Immediately
-    posts server name and password to #mods and #super-secret-sub-club,
+    posts server name and password to #super-secret-sub-club,
     pinging @here in SSSC only.
 
     Hoster must specify a password, and may optionally specify the number
