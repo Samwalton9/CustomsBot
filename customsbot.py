@@ -435,9 +435,9 @@ async def countdown_timer(ctx, *args):
     countdown_timer = time_to_post - datetime.datetime.now()
     countdown_timer_string = get_countdown_string(countdown_timer)
 
-    template_string = "The next game will begin in: {} @here"
+    template_string = "The next game will begin in: {}"
 
-    default_text = template_string.format("[" + countdown_timer_string + "]")
+    default_text = template_string.format(countdown_timer_string)
 
     countdown_message = await discord_client.send_message(customs_channel,
                                                   default_text)
@@ -446,12 +446,11 @@ async def countdown_timer(ctx, *args):
         countdown_timer = time_to_post - datetime.datetime.now()
         countdown_timer_string = get_countdown_string(countdown_timer)
         await asyncio.sleep(1)
-        string_bracketed = "[" + countdown_timer_string + "]"
-        new_message = template_string.format(string_bracketed)
+        new_message = template_string.format(countdown_timer_string)
         await discord_client.edit_message(countdown_message, new_message)
 
     await discord_client.delete_message(countdown_message)
-    await discord_client.send_message(customs_channel, content="Game Started! @here")
+    await discord_client.send_message(customs_channel, content="Game Started!")
 
 @discord_client.command(name='setvoicelimit', pass_context=True)
 @hoster_only()
