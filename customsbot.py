@@ -380,16 +380,14 @@ async def password_countdown(ctx, password, *args):
     countdown_message = await discord_client.send_message(customs_channel,
                                                   default_text)
 
-    mods_channel = discord_client.get_channel(config_data["channels"]["mods"])
+    # Send password to SSSC channel first
     sssc_channel = discord_client.get_channel(config_data["channels"]["sssc"])
-    
-    for channel_name in [mods_channel, sssc_channel]:
-        await discord_client.send_message(channel_name, result_string)
-        if channel_name == sssc_channel:
-            await discord_client.send_message(channel_name, content="@here")
+    await discord_client.send_message(sssc_channel, result_string)
+    await discord_client.send_message(sssc_channel, content="@here")
 
     log_command(ctx.message, "Password")
 
+    # Password timer for custom-games channel
     while datetime.datetime.now() < time_to_post:
         countdown_timer = time_to_post - datetime.datetime.now()
         countdown_timer_string = get_countdown_string(countdown_timer)
