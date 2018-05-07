@@ -498,8 +498,8 @@ async def full_vote(ctx):
         "minus_point_five" : "-0.5",
         "zero_five" : "0.5",
         "one_five" : "1.5",
-        "DanThink" : "Erangel",
-        "PriorsVLELogoFullColourTranspare" : "Miramar"
+        "erangel" : "Erangel",
+        "miramar" : "Miramar"
     }
 
     customs_channel = get_custom_games()

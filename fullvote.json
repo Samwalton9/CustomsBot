@@ -147,9 +147,9 @@
 		"default": ""
 	},
 	"Map": {
-		"input": "Map (Erangel or Miramar)",
+		"input": "Map",
 		"emojis": ["Erangel", "Miramar"],
-		"output": "Map (Erangel or Miramar)",
+		"output": "Map",
 		"units": "",
 		"default": "Erangel"
 	}
