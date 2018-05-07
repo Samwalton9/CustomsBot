@@ -151,6 +151,6 @@
 		"emojis": ["Erangel", "Miramar"],
 		"output": "Map",
 		"units": "",
-		"default": "Erangel"
+		"default": ""
 	}
 }
