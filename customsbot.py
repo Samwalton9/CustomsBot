@@ -337,7 +337,7 @@ async def region_vote(ctx):
 async def password_countdown(ctx, password, *args):
     """
     Starts a countdown to password release in #custom-games. Immediately
-    posts server name and password to #mods and #super-secret-sub-club,
+    posts server name and password to #super-secret-sub-club,
     pinging @here in SSSC only.
 
     Hoster must specify a password, and may optionally specify the number
@@ -380,16 +380,14 @@ async def password_countdown(ctx, password, *args):
     countdown_message = await discord_client.send_message(customs_channel,
                                                   default_text)
 
-    mods_channel = discord_client.get_channel(config_data["channels"]["mods"])
+    # Send password to SSSC channel first
     sssc_channel = discord_client.get_channel(config_data["channels"]["sssc"])
-    
-    for channel_name in [mods_channel, sssc_channel]:
-        await discord_client.send_message(channel_name, result_string)
-        if channel_name == sssc_channel:
-            await discord_client.send_message(channel_name, content="@here")
+    await discord_client.send_message(sssc_channel, result_string)
+    await discord_client.send_message(sssc_channel, content="@here")
 
     log_command(ctx.message, "Password")
 
+    # Password timer for custom-games channel
     while datetime.datetime.now() < time_to_post:
         countdown_timer = time_to_post - datetime.datetime.now()
         countdown_timer_string = get_countdown_string(countdown_timer)
@@ -400,6 +398,57 @@ async def password_countdown(ctx, password, *args):
 
     await discord_client.edit_message(countdown_message, result_string)
     await discord_client.send_message(customs_channel, content="@here")
+
+@discord_client.command(name='countdown', pass_context=True)
+@hoster_only()
+async def countdown_timer(ctx, *args):
+    """
+    Starts a countdown to when the game will begin, in #custom-games.
+    
+    Hoster must start the game once countdown has hit 00:00 or "Game Started".
+
+    Default time: 2 minutes
+    """
+    message_channel = ctx.message.channel
+
+    if len(args) == 0:
+        num_seconds = 120
+    elif len(args) == 1:
+        try:
+            num_seconds = int(args[0])*60
+        except ValueError:
+            error_message = ("Error: Please use an integer to denote the "
+                             "countdown length.")
+            await discord_client.send_message(message_channel, content=error_message)
+            return
+    else:
+        error_message = ("Error: Too many arguments.")
+        await discord_client.send_message(message_channel, content=error_message)
+        return
+
+    customs_channel = get_custom_games()
+
+    current_time = datetime.datetime.now()
+    time_to_post = current_time + datetime.timedelta(seconds=num_seconds)
+    countdown_timer = time_to_post - datetime.datetime.now()
+    countdown_timer_string = get_countdown_string(countdown_timer)
+
+    template_string = "The next game will begin in: {}"
+
+    default_text = template_string.format(countdown_timer_string)
+
+    countdown_message = await discord_client.send_message(customs_channel,
+                                                  default_text)
+
+    while datetime.datetime.now() < time_to_post:
+        countdown_timer = time_to_post - datetime.datetime.now()
+        countdown_timer_string = get_countdown_string(countdown_timer)
+        await asyncio.sleep(1)
+        new_message = template_string.format(countdown_timer_string)
+        await discord_client.edit_message(countdown_message, new_message)
+
+    await discord_client.delete_message(countdown_message)
+    await discord_client.send_message(customs_channel, content="Game Started!")
 
 @discord_client.command(name='setvoicelimit', pass_context=True)
 @hoster_only()

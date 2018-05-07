@@ -6,13 +6,6 @@
 		"units": "s",
 		"default": "10"
 	},
-	"Circle centralisation": {
-		"input": "Circle centralisation (multiplier)",
-		"emojis": ["Minus_one", "Minus_point_five", 0, "Zero_five", 1,"One_five", 2],
-		"output": "Circle centralisation",
-		"units": "x",
-		"default": "1"
-	},
 	"Blue zone speed": {
 		"input": "Circle speed (multiplier)",
 		"emojis": [1,"One_five", 2],
@@ -104,6 +97,13 @@
 		"units": "x",
 		"default": "1"
 	},
+	"Flare guns": {
+		"input": "Flare gun spawn rate (multiplier)",
+		"emojis": [0, 1, 2, 3],
+		"output": "Flare gun spawn rate",
+		"units": "x",
+		"default": "1"
+	},
 	"Attachments": {
 		"input": "Attachments spawn rate (multiplier)",
 		"emojis": [0, 1, 2, 3],
@@ -140,11 +140,11 @@
 		"default": "1"
 	},
 	"Perspective": {
-		"input": "Perspective (First or Third)",
+		"input": "Perspective",
 		"emojis": [1, 3],
 		"output": "Perspective",
 		"units": "",
-		"default": "3"
+		"default": ""
 	},
 	"Map": {
 		"input": "Map (Erangel or Miramar)",
