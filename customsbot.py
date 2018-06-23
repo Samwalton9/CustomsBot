@@ -29,17 +29,26 @@ bot_text_path = os.path.join(file_path,'bot_text.json')
 text_data = json.load(open(bot_text_path))
 
 def hoster_only():
-    """Trust commands from #custom-hosters only"""
+    """
+    Trust commands from #custom-hosters only. Everyone in that channel
+    is a moderator or host, so anyone sending commands here is legitimate.
+    """
     def predicate(ctx):
         customs_channel = get_custom_games()
-        hoster_channel = discord_client.get_channel(config_data["channels"]["hoster"])
+        hoster_channel = discord_client.get_channel(
+            config_data["channels"]["hoster"])
 
         return ctx.message.channel == hoster_channel
     return commands.check(predicate)
 
 async def twitch_check(previous_presence=None):
+    """
+    Every 5 minutes (300 sec), check the pubgreddit Twitch channel.
+    If we get any data back, the stream is live; None means it isn't.
+    """
     while True:
-        pubgreddit_stream = twitch_client.streams.get_stream_by_user('153910806')
+        pubgreddit_stream = twitch_client.streams.get_stream_by_user(
+            '153910806')
 
         if pubgreddit_stream is not None:
             game_presence = discord.Game(name="Custom games",
@@ -57,8 +66,9 @@ async def twitch_check(previous_presence=None):
         await asyncio.sleep(300)
 
 def get_custom_games():
-    """Returns #custom-games object"""
-    customs_channel = discord_client.get_channel(config_data["channels"]["customgames"])
+    """Returns #custom-games channel object"""
+    customs_channel = discord_client.get_channel(
+        config_data["channels"]["customgames"])
 
     return customs_channel
 
@@ -112,7 +122,6 @@ def get_countdown_string(timedelta_object):
 
 @discord_client.event
 async def on_ready():
-    #await discord_client.change_presence(game=discord.Game(name="DM for info"))
 
     print('Logged in as', discord_client.user.name)
     print('\nLogged in to the following servers:')
@@ -133,13 +142,18 @@ async def on_message(message):
         await discord_client.process_commands(message)
 
 async def parse_pm(message_object):
+    """
+    When users send a DM to the bot, first check if they sent any
+    before now. If not, first send instructions. Otherwise, parse
+    whatever command they sent.
+    """
 
     pm_commands = ['role', 'schedule', 'twitch', 'forms']
     pm_response = text_data["pmResponses"]["primary"]
     pm_channel = message_object.channel
 
     num_pms = 0
-    async for pm_message in discord_client.logs_from(pm_channel, limit=2):
+    async for _ in discord_client.logs_from(pm_channel, limit=2):
         num_pms += 1
 
     if num_pms > 1:
@@ -195,7 +209,6 @@ async def squad_vote(ctx, *args):
     """
     message_object = ctx.message
     message_channel = ctx.message.channel
-    command_sent = message_object.content
     message_squad_sizes = args
     
     if len(message_squad_sizes) == 0:
@@ -471,7 +484,8 @@ async def set_voice_limit(ctx, user_limit):
 
     all_channels = discord_client.get_all_channels()
     for channel in all_channels:
-        server_check = channel.server == discord_client.get_server(config_data["serverID"])
+        server_check = channel.server == discord_client.get_server(
+            config_data["serverID"])
 
         if channel.name.startswith("\U0001F6E0") and server_check:
             await discord_client.edit_channel(channel, user_limit=voice_limit_int)
@@ -488,7 +502,8 @@ async def full_vote(ctx):
     Full ruleset voting for the game mode "We'll do it live".
     Gets settings and emojis from fullvote.json.
     '''
-    rules = json.load(open(os.path.join(file_path,'fullvote.json')), object_pairs_hook=OrderedDict)
+    rules = json.load(open(os.path.join(file_path,'fullvote.json')),
+                      object_pairs_hook=OrderedDict)
 
     emojis = config_data["emojis"]
     emoji_map = {
@@ -584,7 +599,8 @@ async def remove_messages(ctx, num_messages):
         except ValueError:
             error_message = ("Error: Please use an integer to denote the"
                              " number of messages to clear.")
-            await discord_client.send_message(message_channel, content=error_message)
+            await discord_client.send_message(message_channel,
+                                              content=error_message)
             return
     
     customs_channel = get_custom_games()
