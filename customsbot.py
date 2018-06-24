@@ -209,16 +209,14 @@ async def on_socket_raw_receive(raw_msg):
     data = msg.get("d")
     if not data:
         return
-    if type == "MESSAGE_REACTION_ADD":
-        message_id = data.get("message_id")
-        if message_id == config_data["reactionMessageID"]:
-            user_id = data.get("user_id")
+
+    message_id = data.get("message_id")
+    if message_id == config_data["reactionMessageID"]:
+        user_id = data.get("user_id")
+        if type == "MESSAGE_REACTION_ADD":
             user = await discord_client.get_user_info(user_id)
             await add_custom_role(user)
-    elif type == "MESSAGE_REACTION_REMOVE":
-        message_id = data.get("message_id")
-        if message_id == config_data["reactionMessageID"]:
-            user_id = data.get("user_id")
+        elif type == "MESSAGE_REACTION_REMOVE":
             user = await discord_client.get_user_info(user_id)
             await remove_custom_role(user)
 
