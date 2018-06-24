@@ -100,8 +100,10 @@ def most_reactions(message):
     """
     reaction_emojis, reaction_count = [], []
     for message_reaction in message.reactions:
-        reaction_emojis.append(message_reaction.emoji)
-        reaction_count.append(message_reaction.count)
+        # Ignore anything additional added emojis
+        if type(message_reaction.emoji) == str:
+            reaction_emojis.append(message_reaction.emoji)
+            reaction_count.append(message_reaction.count)
 
     max_emoji = [reaction_emojis[i] for i,x in enumerate(reaction_count)
                  if x == max(reaction_count)]
