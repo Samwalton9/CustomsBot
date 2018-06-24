@@ -231,13 +231,15 @@ async def parse_pm(message_object):
     pm_response = text_data["pmResponses"]["primary"]
     pm_channel = message_object.channel
 
+    dm_content = message_object.content.lower()
+
     num_pms = 0
     async for _ in discord_client.logs_from(pm_channel, limit=2):
         num_pms += 1
 
     if num_pms > 1:
-        if message_object.content in pm_commands:
-            if message_object.content == 'role':
+        if dm_content in pm_commands:
+            if dm_content == 'role':
                 role_added = await add_custom_role(message_object.author)
                 if role_added:
                     pm_text = text_data["pmResponses"]["roleSuccess"]
@@ -245,7 +247,7 @@ async def parse_pm(message_object):
                 else:
                     pm_text = text_data["pmResponses"]["rolePresent"]
                     log_text = "role | DM"
-            elif message_object.content == 'remove':
+            elif dm_content == 'remove':
                 role_removed = await remove_custom_role(message_object.author)
                 if role_removed:
                     pm_text = text_data["pmResponses"]["removeSuccess"]
@@ -254,7 +256,7 @@ async def parse_pm(message_object):
                     pm_text = text_data["pmResponses"]["removeFailure"]
                     log_text = "remove | DM"
             else:
-                pm_text = text_data["pmResponses"][message_object.content]
+                pm_text = text_data["pmResponses"][dm_content]
                 log_text = message_object.content + "| DM"
 
             await discord_client.send_message(pm_channel, content=pm_text)
