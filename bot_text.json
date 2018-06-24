@@ -10,11 +10,13 @@
 	],
 	"pmResponses": {
 		"primary": "Hi! We run custom games multiple times every week, and I would be happy to give you more information\n\nIf you don't yet have the 'Custom' role, which allows you to see #custom-games and #custom-chat-lfg, please respond with `role` and I'll add it to your account.\n\nIf you would like a link to the schedule, please respond with `schedule`.\n\nTo receive a link to the Twitch stream, please reply `twitch`.\n\nIf you want to sign up as a hoster or suggest a new game mode, please reply `forms`.",
-		"roleSuccess": "Added the Custom role successfully. You should now be able to see #custom-games, where custom game details will be posted.",
-		"rolePresent": "You already have the 'Custom' role and should be able to see #custom-games and #custom-chat-lfg already.",
+		"roleSuccess": "Added the Custom role successfully. You should now be able to see #custom-games, where custom game details will be posted. You can remove this role by typing 'remove'.",
+		"rolePresent": "You already have the 'Custom' role and should be able to see #custom-games and #custom-chat-lfg already. If you would like to remove the role, type 'remove'",
 		"schedule": "A full schedule of upcoming games can be found at <https://goo.gl/pzTKv3>\n\nThe schedule should be shown in your time zone, but you can verify this by checking the menu in the top right.\n\n*If the schedule appears to be blank, we may not have any games currently planned. Check back soon to see if we've added any!*",
 		"twitch": "All our games are streamed over at our Twitch channel: <https://twitch.tv/pubgreddit>\n\nTwitch subscribers get access to #super-secret-sub-club, where passwords for custom games are posted before being announced publicly. Any funds raised through subscriptions will go into future tournaments! Once you've subscribed just make sure your Twitch account is linked to your Discord account and you should get the role!",
-		"forms": "The game modes we play are usually taken from this list, which we continue to expand with new modes: <https://goo.gl/JU1ds1> You can suggest new modes using this form: <https://goo.gl/forms/b8AZGpSQpvkj1suj1>\n\nIf you have experience streaming games on Twitch (with a solid internet connection and a PC good enough to handle it), and have the availability to host at least approximately once per week, please let us know by filling out this form: <https://goo.gl/forms/H1QrCeS2KZ1JB8IE3>"
+		"forms": "The game modes we play are usually taken from this list, which we continue to expand with new modes: <https://goo.gl/JU1ds1> You can suggest new modes using this form: <https://goo.gl/forms/b8AZGpSQpvkj1suj1>\n\nIf you have experience streaming games on Twitch (with a solid internet connection and a PC good enough to handle it), and have the availability to host at least approximately once per week, please let us know by filling out this form: <https://goo.gl/forms/H1QrCeS2KZ1JB8IE3>",
+		"removeSuccess": "Your custom role has been removed.",
+		"removeFailure": "You don't appear to have the custom role, so I can't remove it."
 	},
 	"chatResponses": {
 		"schedule": "A full schedule of upcoming games can be found at <https://goo.gl/pzTKv3>. *If there's nothing on the schedule, nothing is scheduled.*"

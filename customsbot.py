@@ -120,36 +120,55 @@ def get_countdown_string(timedelta_object):
     countdown_timer_string = ":".join(countdown_timer_split[1:])
     return countdown_timer_string.split(".")[0]  # Without decimal
 
-async def add_custom_role(user, dm=False):
-    """
-    If the user doesn't currently have the role, add it.
-    To specify the role was added through a DM, pass a message
-    object as dm.
-    """
+def get_custom_role():
+    pubg_server = discord_client.get_server(config_data["serverID"])
+    custom_role_id = config_data["customRoleID"]
+    return discord.utils.get(pubg_server.roles, id=custom_role_id)
+
+def get_user_member(user):
     pubg_server = discord_client.get_server(config_data["serverID"])
     pubg_member = pubg_server.get_member(user.id)
-    member_roles = pubg_member.roles
-    custom_role_id = config_data["customRoleID"]
+    return pubg_member
+
+def has_custom_role(user):
+
+    member_roles = get_user_member(user).roles
 
     has_role = False
     for role in member_roles:
-        if role.id == custom_role_id:
+        if role == get_custom_role():
             has_role = True
             break
 
-    if has_role:
-        log_text = "role | DM"
+    return has_role
 
+async def add_custom_role(user):
+    """
+    Add custom role to a user if they don't already have it.
+    Returns True if role was newly added.
+    """
+
+    if has_custom_role(user):
+        return False
     else:
-        custom_role = discord.utils.get(pubg_server.roles, id=custom_role_id)
-        await discord_client.add_roles(pubg_member, custom_role)
-        log_text = "role | DM | granted new role"
-
-    if dm:
-        log_command(dm, log_text)
-
-    if not has_role:
+        custom_role = get_custom_role()
+        user_member = get_user_member(user)
+        await discord_client.add_roles(user_member, custom_role)
         return True
+
+async def remove_custom_role(user):
+    """
+    Remove custom role from a user if they have it.
+    Returns True if role was removed.
+    """
+
+    if has_custom_role(user):
+        custom_role = get_custom_role()
+        user_member = get_user_member(user)
+        await discord_client.remove_roles(user_member, custom_role)
+        return True
+    else:
+        return False
 
 @discord_client.event
 async def on_ready():
@@ -194,6 +213,12 @@ async def on_socket_raw_receive(raw_msg):
             user_id = data.get("user_id")
             user = await discord_client.get_user_info(user_id)
             await add_custom_role(user)
+    elif type == "MESSAGE_REACTION_REMOVE":
+        message_id = data.get("message_id")
+        if message_id == config_data["reactionMessageID"]:
+            user_id = data.get("user_id")
+            user = await discord_client.get_user_info(user_id)
+            await remove_custom_role(user)
 
 async def parse_pm(message_object):
     """
@@ -202,7 +227,7 @@ async def parse_pm(message_object):
     whatever command they sent.
     """
 
-    pm_commands = ['role', 'schedule', 'twitch', 'forms']
+    pm_commands = ['role', 'schedule', 'twitch', 'forms', 'remove']
     pm_response = text_data["pmResponses"]["primary"]
     pm_channel = message_object.channel
 
@@ -213,20 +238,33 @@ async def parse_pm(message_object):
     if num_pms > 1:
         if message_object.content in pm_commands:
             if message_object.content == 'role':
-                role_added = await add_custom_role(message_object.author, dm=message_object)
+                role_added = await add_custom_role(message_object.author)
                 if role_added:
                     pm_text = text_data["pmResponses"]["roleSuccess"]
+                    log_text = "role | DM | granted new role"
                 else:
                     pm_text = text_data["pmResponses"]["rolePresent"]
+                    log_text = "role | DM"
+            elif message_object.content == 'remove':
+                role_removed = await remove_custom_role(message_object.author)
+                if role_removed:
+                    pm_text = text_data["pmResponses"]["removeSuccess"]
+                    log_text = "remove | DM | removed role"
+                else:
+                    pm_text = text_data["pmResponses"]["removeFailure"]
+                    log_text = "remove | DM"
             else:
                 pm_text = text_data["pmResponses"][message_object.content]
-            
-            if pm_text:
-                await discord_client.send_message(pm_channel, content=pm_text)
+                log_text = message_object.content + "| DM"
+
+            await discord_client.send_message(pm_channel, content=pm_text)
+            log_command(message_object, log_text)
+
         else:
             error_message = "Sorry, I don't recognise that command."
             await discord_client.send_message(pm_channel, content=error_message)
             log_command(message_object, message_object.content + " | DM", error=True)
+
     else:
         await discord_client.send_message(pm_channel, content=pm_response)
         log_command(message_object, "Sent instructions | DM")
