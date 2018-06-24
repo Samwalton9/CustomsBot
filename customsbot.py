@@ -120,6 +120,37 @@ def get_countdown_string(timedelta_object):
     countdown_timer_string = ":".join(countdown_timer_split[1:])
     return countdown_timer_string.split(".")[0]  # Without decimal
 
+async def add_custom_role(user, dm=False):
+    """
+    If the user doesn't currently have the role, add it.
+    To specify the role was added through a DM, pass a message
+    object as dm.
+    """
+    pubg_server = discord_client.get_server(config_data["serverID"])
+    pubg_member = pubg_server.get_member(user.id)
+    member_roles = pubg_member.roles
+    custom_role_id = config_data["customRoleID"]
+
+    has_role = False
+    for role in member_roles:
+        if role.id == custom_role_id:
+            has_role = True
+            break
+
+    if has_role:
+        log_text = "role | DM"
+
+    else:
+        custom_role = discord.utils.get(pubg_server.roles, id=custom_role_id)
+        await discord_client.add_roles(pubg_member, custom_role)
+        log_text = "role | DM | granted new role"
+
+    if dm:
+        log_command(dm, log_text)
+
+    if not has_role:
+        return True
+
 @discord_client.event
 async def on_ready():
 
@@ -141,6 +172,29 @@ async def on_message(message):
         # commands extension, this line is required.
         await discord_client.process_commands(message)
 
+@discord_client.event
+async def on_socket_raw_receive(raw_msg):
+    """
+    For adding roles based on reaction.
+    discord.py async release can only use on_reaction_add() to monitor
+    reactions to messages in its cache (i.e. sent recently, while it is
+    online). Rewrite has on_raw_reaction_add() which removes this limitation,
+    but for async this is the best solution.
+    """
+    if not isinstance(raw_msg, str):
+        return
+    msg = json.loads(raw_msg)
+    type = msg.get("t")
+    data = msg.get("d")
+    if not data:
+        return
+    if type == "MESSAGE_REACTION_ADD":
+        message_id = data.get("message_id")
+        if message_id == config_data["reactionMessageID"]:
+            user_id = data.get("user_id")
+            user = await discord_client.get_user_info(user_id)
+            await add_custom_role(user)
+
 async def parse_pm(message_object):
     """
     When users send a DM to the bot, first check if they sent any
@@ -159,28 +213,11 @@ async def parse_pm(message_object):
     if num_pms > 1:
         if message_object.content in pm_commands:
             if message_object.content == 'role':
-                pubg_server = discord_client.get_server(config_data["serverID"])
-                pubg_member = pubg_server.get_member(message_object.author.id)
-                member_roles = pubg_member.roles
-                custom_role_id = config_data["customRoleID"]
-
-                has_role = False
-                for role in member_roles:
-                    if role.id == custom_role_id:
-                        has_role = True
-                        break
-
-                if has_role:
-                    pm_text = text_data["pmResponses"]["rolePresent"]
-                    log_text = message_object.content + " | DM"
-                else:
-                    custom_role = discord.utils.get(pubg_server.roles, id=custom_role_id)
-                    await discord_client.add_roles(pubg_member, custom_role)
+                role_added = await add_custom_role(message_object.author, dm=message_object)
+                if role_added:
                     pm_text = text_data["pmResponses"]["roleSuccess"]
-                    log_text = message_object.content + " | DM | granted new role"
-
-                log_command(message_object, log_text)
-
+                else:
+                    pm_text = text_data["pmResponses"]["rolePresent"]
             else:
                 pm_text = text_data["pmResponses"][message_object.content]
             

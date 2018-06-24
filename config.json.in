@@ -23,5 +23,6 @@
                    "Emoji",
                    "IDs"
                ],
-  "twitchClientID": "Your Twitch API Client ID"
+  "twitchClientID": "Your Twitch API Client ID",
+  "reactionMessageID": "Message ID containing the role reaction"
 }
