@@ -187,6 +187,8 @@ async def on_message(message):
     if message.server is None and not message.author.bot:
             await parse_pm(message)
     else:
+        # Case insensitive commands
+        message.content = message.content.lower()
         # Since we're overriding default on_message behaviour for the
         # commands extension, this line is required.
         await discord_client.process_commands(message)
