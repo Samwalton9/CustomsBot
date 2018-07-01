@@ -93,17 +93,18 @@ def log_command(message_object, text, error=False):
                                        status)
         file.write(log_string)
 
-def most_reactions(message):
+def most_reactions(message, num_only=False):
     """
     Given a message, determine which reaction emoji received the
     most votes. Breaks ties with a random choice.
     """
     reaction_emojis, reaction_count = [], []
+    if num_only:
+        message.reactions = [i for i in message.reactions if type(i.emoji) == str]
+
     for message_reaction in message.reactions:
-        # Ignore anything additional added emojis
-        if type(message_reaction.emoji) == str:
-            reaction_emojis.append(message_reaction.emoji)
-            reaction_count.append(message_reaction.count)
+        reaction_emojis.append(message_reaction.emoji)
+        reaction_count.append(message_reaction.count)
 
     max_emoji = [reaction_emojis[i] for i,x in enumerate(reaction_count)
                  if x == max(reaction_count)]
@@ -353,7 +354,7 @@ async def squad_vote(ctx, *args):
                                                   sent_squad_message.id)
     await discord_client.clear_reactions(sent_squad_message)
 
-    squad_selected = most_reactions(sent_squad_message)
+    squad_selected = most_reactions(sent_squad_message, num_only=True)
 
     squad_result = squad_selected + "P Squads"
 
