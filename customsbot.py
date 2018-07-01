@@ -190,8 +190,17 @@ async def on_message(message):
     if message.server is None and not message.author.bot:
             await parse_pm(message)
     else:
-        # Case insensitive commands
-        message.content = message.content.lower()
+        # Case insensitive commands. We have to make sure the rest of
+        # the command isn't lower case so as not to alter passwords.
+        # Since we're taking additional actions on raw input messages,
+        # we do a quick check that this is actually a command attempt
+        # so as not to needlessly process every server message.
+        if message.content.startswith("$"):
+            message_split = message.content.split(" ")
+            message_joined = message_split[0].lower() + " " + " ".join(message_split[1:])
+            print(message_joined)
+            message.content = message_joined
+
         # Since we're overriding default on_message behaviour for the
         # commands extension, this line is required.
         await discord_client.process_commands(message)
