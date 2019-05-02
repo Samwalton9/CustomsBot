@@ -55,7 +55,7 @@ async def twitch_check(previous_presence=None):
                                          url="https://twitch.tv/pubgreddit",
                                          type=1)
         else:
-            game_presence = discord.Game(name="DM for info")
+            game_presence = discord.Game(name="See #custom-games-info for info")
 
         #Only update the presence if it changed since last time
         if previous_presence != game_presence:
