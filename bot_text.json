@@ -5,7 +5,6 @@
 		"`$password <password> (minutes)` - Post a countdown to the <password> release of <minutes> minutes. Automatically posts password to #super-secret-sub-club first. Minutes optional, default is 2 minutes.",
 		"`$setvoicelimit <size>` - Change all customs voice channels to <size>.",
 		"`$clear <number>` - Remove <number> of CustomsBot messages from #custom-games. `$clear all` will remove all CustomsBot messages.",
-		"`$fullvote` - Start a vote for every game mode, for use in the 'We'll do it live' game mode.",
 		"`$countdown (minutes)` - Start a countdown for when the next game will start. Minutes optional, default is 2 minutes."
 	],
 	"pmResponses": {
