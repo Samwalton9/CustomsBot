@@ -3,6 +3,7 @@
 		"`$squadvote <squad size 1> <squad size 2> ...` - Post a vote for squad size for the next game, defaults to 1, 2, 4, and 8. `$squadvote all` will do every size between 1 and 10. Automatically changes voice channel sizes to winning vote. e.g. `$squadvote 1 2 3 4`",
 		"`$regionvote` - Post a vote for the region for this session's custom games.",
                 "`$mapvote` - Post a vote for which map to play. \nEnsure each map is typed correctly. E.g. 'Erangel'",
+                "`$perspectivevote` (or `$pv`) - Post a vote for players to decide which perspective to play for that next game.",
 		"`$password <password> (minutes)` - Post a countdown to the <password> release of <minutes> minutes. Automatically posts password to #super-secret-sub-club first. Minutes optional, default is 2 minutes.",
 		"`$setvoicelimit <size>` - Change all customs voice channels to <size>.",
 		"`$clear <number>` - Remove <number> of CustomsBot messages from #custom-games. `$clear all` will remove all CustomsBot messages.",

@@ -339,7 +339,7 @@ async def squad_vote(ctx, *args):
         if squad_size_int == 10:
             emoji = "\U0001F51F"  # :keycap_ten: is a single emoji
         else:
-            emoji = str(squad_size_int) + "\U000020e3"
+            emoji = str(squad_size_int) + "\U000020E3"
 
         await discord_client.add_reaction(sent_squad_message, emoji)
 
@@ -528,6 +528,56 @@ async def map_vote(ctx, *args):
 
     await discord_client.edit_message(sent_map_message, map_message_finished)
     await discord_client.delete_message(here_ping)
+
+@discord_client.command(name='perspectivevote', aliases=['pv'], pass_context=True)
+@hoster_only()
+async def perspective_vote(ctx):
+    """
+    Starts a vote on perspective for the game mode.
+
+    """
+
+    customs_channel = get_custom_games()
+
+    perspective_vote_message = ("Which perspective should we host today's games on?"
+                           "\nTimer: {}")
+    default_perspective_message = perspective_vote_message.format("02:00")
+    perspective_message = await discord_client.send_message(customs_channel,
+                                               content= default_perspective_message)
+    perspective_emojis = ['1','3']
+    
+    for perspective_int in perspective_emojis:
+        emoji = str(perspective_int) + "\U000020E3"
+        await discord_client.add_reaction(perspective_message, emoji)
+    here_ping = await discord_client.send_message(customs_channel,
+                                          content="@here")
+
+    message_channel = ctx.message.channel
+    await discord_client.send_message(message_channel,
+                              "Perspective vote successfully posted.")
+    log_command(ctx.message, "Perspective vote")
+    time_to_post = datetime.datetime.now() + datetime.timedelta(seconds=120)
+
+    while datetime.datetime.now() < time_to_post:
+        countdown_timer = time_to_post - datetime.datetime.now()
+        countdown_timer_string = get_countdown_string(countdown_timer)
+        await asyncio.sleep(1)
+        new_message = perspective_vote_message.format(countdown_timer_string)
+        await discord_client.edit_message(perspective_message, new_message)
+
+    perspective_message = await discord_client.get_message(customs_channel,
+                                              perspective_message.id)
+    await discord_client.clear_reactions(perspective_message)
+    perspective_selected = most_reactions(perspective_message)
+
+    perspective_result = perspective_selected
+
+    perspective_message_finished = "Perspective vote over. Result: {}".format(perspective_result)
+
+    await discord_client.delete_message(here_ping)
+
+    await discord_client.edit_message(perspective_message, perspective_message_finished)
+
 
 @discord_client.command(name='password', pass_context=True)
 @hoster_only()
