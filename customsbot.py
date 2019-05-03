@@ -434,6 +434,96 @@ async def region_vote(ctx):
 
     await discord_client.edit_message(region_message, region_message_finished)
 
+@discord_client.command(name='mapvote', aliases=['mv'], pass_context=True)
+@hoster_only()
+async def map_vote(ctx, *args):
+    """
+    Starts a vote on which Map to play.
+
+    The hoster can specify which maps to vote, or 'all' to include
+    every map. The vote stays open for 2 minutes.
+    """
+    message_object = ctx.message
+    message_channel = ctx.message.channel
+    message_maps_choice = args
+    maps_for_vote = "" 
+    emojis = ""
+    map_choice_selected = ""
+    maps_available = ['Erangel', 'Miramar', 'Sanhok', 'Vikendi']
+
+    if len(message_maps_choice) == 0:
+        map_choice_selected = maps_available
+        emojis = ['\U0001F3DE','\U0001F3DC','\U0001F3DD','\U0001F3D4']
+        maps_for_vote = ("\nErangel = \U0001F3DE"
+                         "\nMiramar = \U0001F3DC"
+                         "\nSanhok = \U0001F3DD"
+                         "\nVikendi = \U0001F3D4")
+    
+    if any(s in message_maps_choice for s in maps_available):
+        pass
+    else:
+        maps = " ".join(maps_available)
+        error_message = ("Error: Can't find one or more maps. \nMaps available are: ") + maps
+        await discord_client.send_message(message_channel, content=error_message)
+        return
+
+    if 'Erangel' in message_maps_choice:
+        map_choice_selected = map_choice_selected + "Erangel"
+        emojis = emojis + "\U0001F3DE"
+        maps_for_vote = maps_for_vote + "\nErangel: \U0001F3DE"
+    if 'Miramar' in message_maps_choice:
+        map_choice_selected = map_choice_selected + "Miramar"
+        emojis = emojis + "\U0001F3DC"
+        maps_for_vote = maps_for_vote + "\nMiramar: \U0001F3DC"
+    if 'Sanhok' in message_maps_choice:
+        map_choice_selected = map_choice_selected + "Sanhok"
+        emojis = emojis + "\U0001F3DD"
+        maps_for_vote = maps_for_vote + "\nSanhok: \U0001F3DD"
+    if 'Vikendi' in message_maps_choice:
+        map_choice_selected = map_choice_selected + "Vikendi"
+        emojis = emojis + "\U0001F3D4"
+        maps_for_vote = maps_for_vote + "\nVikendi: \U0001F3D4"
+    
+    customs_channel = get_custom_games()
+
+    maps_vote_message = ("Please vote on which map you want to play for the next game:") + maps_for_vote + ("\nTimer: {}")
+    default_message = maps_vote_message.format("02:00")
+    
+    sent_map_message = await discord_client.send_message(customs_channel,
+                                                   content= default_message)
+
+    for emoji in emojis:
+        await discord_client.add_reaction(sent_map_message, emoji)
+
+    here_ping = await discord_client.send_message(customs_channel,
+                                          content="@here")
+
+    await discord_client.send_message(message_channel,
+                              content= "Map vote successfully posted.")
+    log_command(message_object, "Map vote")
+
+    time_to_post = datetime.datetime.now() + datetime.timedelta(seconds=120)
+
+    while datetime.datetime.now() < time_to_post:
+        countdown_timer = time_to_post - datetime.datetime.now()
+        countdown_timer_string = get_countdown_string(countdown_timer)
+        await asyncio.sleep(1)
+        new_message = maps_vote_message.format(countdown_timer_string)
+        await discord_client.edit_message(sent_map_message, new_message)
+
+    sent_map_message = await discord_client.get_message(customs_channel,
+                                                  sent_map_message.id)
+    await discord_client.clear_reactions(sent_map_message)
+
+    map_selected = most_reactions(sent_map_message)
+
+    map_result = map_selected
+
+    map_message_finished = "Map vote over. Result: {}".format(map_result)
+
+    await discord_client.edit_message(sent_map_message, map_message_finished)
+    await discord_client.delete_message(here_ping)
+
 @discord_client.command(name='password', pass_context=True)
 @hoster_only()
 async def password_countdown(ctx, password, *args):
