@@ -449,7 +449,7 @@ async def map_vote(ctx, *args):
     maps_for_vote = "" 
     emojis = ""
     map_choice_selected = ""
-    maps_available = ['Erangel', 'Miramar', 'Sanhok', 'Vikendi']
+    maps_available = ['Erangel', 'Miramar', 'Sanhok', 'Vikendi', 'Camp Jackal']
 
     if len(message_maps_choice) == 0:
         map_choice_selected = maps_available
@@ -459,13 +459,13 @@ async def map_vote(ctx, *args):
                          "\nSanhok = \U0001F3DD"
                          "\nVikendi = \U0001F3D4")
     
-    if any(s in message_maps_choice for s in maps_available):
-        pass
-    else:
-        maps = " ".join(maps_available)
-        error_message = ("Error: Can't find one or more maps. \nMaps available are: ") + maps
-        await discord_client.send_message(message_channel, content=error_message)
-        return
+    #if any(s in message_maps_choice for s in maps_available):
+    #    pass
+    #else:
+    #    maps = " ".join(maps_available)
+    #    error_message = ("Error: Can't find one or more maps. \nMaps available are: ") + maps
+    #    await discord_client.send_message(message_channel, content=error_message)
+    #    return
 
     if 'Erangel' in message_maps_choice:
         map_choice_selected = map_choice_selected + "Erangel"
@@ -483,6 +483,11 @@ async def map_vote(ctx, *args):
         map_choice_selected = map_choice_selected + "Vikendi"
         emojis = emojis + "\U0001F3D4"
         maps_for_vote = maps_for_vote + "\nVikendi: \U0001F3D4"
+    if 'Jackal' in message_maps_choice:
+        map_choice_selected = map_choice_selected + "Camp Jackal"
+        emojis = emojis + "\U0001F304"
+        maps_for_vote = maps_for_vote + "\nCamp Jackal: \U0001F304"
+
     
     customs_channel = get_custom_games()
 
