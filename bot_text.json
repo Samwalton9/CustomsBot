@@ -7,6 +7,7 @@
 		"`$setvoicelimit <size>` - Change all customs voice channels to <size>.",
 		"`$clear <number>` - Remove <number> of CustomsBot messages from #custom-games. `$clear all` will remove all CustomsBot messages.",
 		"`$countdown (minutes)` - Start a countdown for when the next game will start. Minutes optional, default is 2 minutes."
+		"`$timer (minutes)` - Start a timer for whatever you feel like. Minutes optional, default is 2 minutes."
 	],
 	"pmResponses": {
 		"primary": "Hi! We run custom games multiple times every week, and I would be happy to give you more information\n\nIf you don't yet have the 'Custom' role, which allows you to see #custom-games and #custom-chat-lfg, please respond with `role` and I'll add it to your account.\n\nIf you would like a link to the schedule, please respond with `schedule`.\n\nTo receive a link to the Twitch stream, please reply `twitch`.\n\nIf you want to sign up as a hoster or suggest a new game mode, please reply `forms`.",

@@ -642,6 +642,55 @@ async def countdown_timer(ctx, *args):
     await discord_client.delete_message(countdown_message)
     await discord_client.send_message(customs_channel, content="Game Started!")
 
+@discord_client.command(name='timer', pass_context=True)
+@hoster_only()
+async def timer(ctx, *args):
+    """
+    Starts a timer in #custom-games.
+
+    Default time: 2 minutes
+    """
+    message_channel = ctx.message.channel
+
+    if len(args) == 0:
+        num_seconds = 120
+    elif len(args) == 1:
+        try:
+            num_seconds = int(args[0])*60
+        except ValueError:
+            error_message = ("Error: Please use an integer to denote the "
+                             "timer length.")
+            await discord_client.send_message(message_channel, content=error_message)
+            return
+    else:
+        error_message = ("Error: Too many arguments.")
+        await discord_client.send_message(message_channel, content=error_message)
+        return
+
+    customs_channel = get_custom_games()
+
+    current_time = datetime.datetime.now()
+    time_to_post = current_time + datetime.timedelta(seconds=num_seconds)
+    timer = time_to_post - datetime.datetime.now()
+    timer_string = get_countdown_string(timer)
+
+    template_string = "A timer has started!\n{}"
+
+    default_text = template_string.format(timer_string)
+
+    timer_message = await discord_client.send_message(customs_channel,
+                                                  default_text)
+
+    while datetime.datetime.now() < time_to_post:
+        countdown_timer = time_to_post - datetime.datetime.now()
+        countdown_timer_string = get_countdown_string(countdown_timer)
+        await asyncio.sleep(1)
+        new_message = template_string.format(countdown_timer_string)
+        await discord_client.edit_message(timer_message, new_message)
+
+    await discord_client.delete_message(timer_message)
+    await discord_client.send_message(customs_channel, content="Time's Up!")
+
 @discord_client.command(name='setvoicelimit', pass_context=True)
 @hoster_only()
 async def set_voice_limit(ctx, user_limit):
