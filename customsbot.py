@@ -55,7 +55,7 @@ async def twitch_check(previous_presence=None):
                                          url="https://twitch.tv/pubgreddit",
                                          type=1)
         else:
-            game_presence = discord.Game(name="DM for info")
+            game_presence = discord.Game(name="See #custom-games-info for info")
 
         #Only update the presence if it changed since last time
         if previous_presence != game_presence:
@@ -339,7 +339,7 @@ async def squad_vote(ctx, *args):
         if squad_size_int == 10:
             emoji = "\U0001F51F"  # :keycap_ten: is a single emoji
         else:
-            emoji = str(squad_size_int) + "\U000020e3"
+            emoji = str(squad_size_int) + "\U000020E3"
 
         await discord_client.add_reaction(sent_squad_message, emoji)
 
@@ -433,6 +433,151 @@ async def region_vote(ctx):
     await discord_client.delete_message(here_ping)
 
     await discord_client.edit_message(region_message, region_message_finished)
+
+@discord_client.command(name='mapvote', aliases=['mv'], pass_context=True)
+@hoster_only()
+async def map_vote(ctx, *args):
+    """
+    Starts a vote on which Map to play.
+
+    The hoster can specify which maps to vote, or 'all' to include
+    every map. The vote stays open for 2 minutes.
+    """
+    message_object = ctx.message
+    message_channel = ctx.message.channel
+    message_maps_choice = args
+    maps_for_vote = "" 
+    emojis = ""
+    map_choice_selected = ""
+    maps_available = ['Erangel', 'Miramar', 'Sanhok', 'Vikendi', 'Camp Jackal']
+
+    if len(message_maps_choice) == 0:
+        map_choice_selected = maps_available
+        emojis = ['\U0001F3DE','\U0001F3DC','\U0001F3DD','\U0001F3D4']
+        maps_for_vote = ("\nErangel = \U0001F3DE"
+                         "\nMiramar = \U0001F3DC"
+                         "\nSanhok = \U0001F3DD"
+                         "\nVikendi = \U0001F3D4")
+    
+    #if any(s in message_maps_choice for s in maps_available):
+    #    pass
+    #else:
+    #    maps = " ".join(maps_available)
+    #    error_message = ("Error: Can't find one or more maps. \nMaps available are: ") + maps
+    #    await discord_client.send_message(message_channel, content=error_message)
+    #    return
+
+    if 'Erangel' in message_maps_choice:
+        map_choice_selected = map_choice_selected + "Erangel"
+        emojis = emojis + "\U0001F3DE"
+        maps_for_vote = maps_for_vote + "\nErangel: \U0001F3DE"
+    if 'Miramar' in message_maps_choice:
+        map_choice_selected = map_choice_selected + "Miramar"
+        emojis = emojis + "\U0001F3DC"
+        maps_for_vote = maps_for_vote + "\nMiramar: \U0001F3DC"
+    if 'Sanhok' in message_maps_choice:
+        map_choice_selected = map_choice_selected + "Sanhok"
+        emojis = emojis + "\U0001F3DD"
+        maps_for_vote = maps_for_vote + "\nSanhok: \U0001F3DD"
+    if 'Vikendi' in message_maps_choice:
+        map_choice_selected = map_choice_selected + "Vikendi"
+        emojis = emojis + "\U0001F3D4"
+        maps_for_vote = maps_for_vote + "\nVikendi: \U0001F3D4"
+    if 'Jackal' in message_maps_choice:
+        map_choice_selected = map_choice_selected + "Camp Jackal"
+        emojis = emojis + "\U0001F304"
+        maps_for_vote = maps_for_vote + "\nCamp Jackal: \U0001F304"
+
+    
+    customs_channel = get_custom_games()
+
+    maps_vote_message = ("Please vote on which map you want to play for the next game:") + maps_for_vote + ("\nTimer: {}")
+    default_message = maps_vote_message.format("02:00")
+    
+    sent_map_message = await discord_client.send_message(customs_channel,
+                                                   content= default_message)
+
+    for emoji in emojis:
+        await discord_client.add_reaction(sent_map_message, emoji)
+
+    here_ping = await discord_client.send_message(customs_channel,
+                                          content="@here")
+
+    await discord_client.send_message(message_channel,
+                              content= "Map vote successfully posted.")
+    log_command(message_object, "Map vote")
+
+    time_to_post = datetime.datetime.now() + datetime.timedelta(seconds=120)
+
+    while datetime.datetime.now() < time_to_post:
+        countdown_timer = time_to_post - datetime.datetime.now()
+        countdown_timer_string = get_countdown_string(countdown_timer)
+        await asyncio.sleep(1)
+        new_message = maps_vote_message.format(countdown_timer_string)
+        await discord_client.edit_message(sent_map_message, new_message)
+
+    sent_map_message = await discord_client.get_message(customs_channel,
+                                                  sent_map_message.id)
+    await discord_client.clear_reactions(sent_map_message)
+
+    map_selected = most_reactions(sent_map_message)
+
+    map_result = map_selected
+
+    map_message_finished = "Map vote over. Result: {}".format(map_result)
+
+    await discord_client.edit_message(sent_map_message, map_message_finished)
+    await discord_client.delete_message(here_ping)
+
+@discord_client.command(name='perspectivevote', aliases=['pv'], pass_context=True)
+@hoster_only()
+async def perspective_vote(ctx):
+    """
+    Starts a vote on perspective for the game mode.
+
+    """
+
+    customs_channel = get_custom_games()
+
+    perspective_vote_message = ("Which perspective should we host today's games on?"
+                           "\nTimer: {}")
+    default_perspective_message = perspective_vote_message.format("02:00")
+    perspective_message = await discord_client.send_message(customs_channel,
+                                               content= default_perspective_message)
+    perspective_emojis = ['1','3']
+    
+    for perspective_int in perspective_emojis:
+        emoji = str(perspective_int) + "\U000020E3"
+        await discord_client.add_reaction(perspective_message, emoji)
+    here_ping = await discord_client.send_message(customs_channel,
+                                          content="@here")
+
+    message_channel = ctx.message.channel
+    await discord_client.send_message(message_channel,
+                              "Perspective vote successfully posted.")
+    log_command(ctx.message, "Perspective vote")
+    time_to_post = datetime.datetime.now() + datetime.timedelta(seconds=120)
+
+    while datetime.datetime.now() < time_to_post:
+        countdown_timer = time_to_post - datetime.datetime.now()
+        countdown_timer_string = get_countdown_string(countdown_timer)
+        await asyncio.sleep(1)
+        new_message = perspective_vote_message.format(countdown_timer_string)
+        await discord_client.edit_message(perspective_message, new_message)
+
+    perspective_message = await discord_client.get_message(customs_channel,
+                                              perspective_message.id)
+    await discord_client.clear_reactions(perspective_message)
+    perspective_selected = most_reactions(perspective_message)
+
+    perspective_result = perspective_selected
+
+    perspective_message_finished = "Perspective vote over. Result: {}".format(perspective_result)
+
+    await discord_client.delete_message(here_ping)
+
+    await discord_client.edit_message(perspective_message, perspective_message_finished)
+
 
 @discord_client.command(name='password', pass_context=True)
 @hoster_only()
@@ -552,6 +697,55 @@ async def countdown_timer(ctx, *args):
     await discord_client.delete_message(countdown_message)
     await discord_client.send_message(customs_channel, content="Game Started!")
 
+@discord_client.command(name='timer', pass_context=True)
+@hoster_only()
+async def timer(ctx, *args):
+    """
+    Starts a timer in #custom-games.
+
+    Default time: 2 minutes
+    """
+    message_channel = ctx.message.channel
+
+    if len(args) == 0:
+        num_seconds = 120
+    elif len(args) == 1:
+        try:
+            num_seconds = int(args[0])*60
+        except ValueError:
+            error_message = ("Error: Please use an integer to denote the "
+                             "timer length.")
+            await discord_client.send_message(message_channel, content=error_message)
+            return
+    else:
+        error_message = ("Error: Too many arguments.")
+        await discord_client.send_message(message_channel, content=error_message)
+        return
+
+    customs_channel = get_custom_games()
+
+    current_time = datetime.datetime.now()
+    time_to_post = current_time + datetime.timedelta(seconds=num_seconds)
+    timer = time_to_post - datetime.datetime.now()
+    timer_string = get_countdown_string(timer)
+
+    template_string = "A timer has started!\n{}"
+
+    default_text = template_string.format(timer_string)
+
+    timer_message = await discord_client.send_message(customs_channel,
+                                                  default_text)
+
+    while datetime.datetime.now() < time_to_post:
+        countdown_timer = time_to_post - datetime.datetime.now()
+        countdown_timer_string = get_countdown_string(countdown_timer)
+        await asyncio.sleep(1)
+        new_message = template_string.format(countdown_timer_string)
+        await discord_client.edit_message(timer_message, new_message)
+
+    await discord_client.delete_message(timer_message)
+    await discord_client.send_message(customs_channel, content="Time's Up!")
+
 @discord_client.command(name='setvoicelimit', pass_context=True)
 @hoster_only()
 async def set_voice_limit(ctx, user_limit):
@@ -583,92 +777,6 @@ async def set_voice_limit(ctx, user_limit):
     voice_message = voice_limit_message.format(voice_limit_int)
 
     await discord_client.send_message(message_channel, content=voice_message)
-
-@discord_client.command(name='fullvote', aliases=['fv'], pass_context=True)
-@hoster_only()
-async def full_vote(ctx):
-    '''
-    Full ruleset voting for the game mode "We'll do it live".
-    Gets settings and emojis from fullvote.json.
-    '''
-    rules = json.load(open(os.path.join(file_path,'fullvote.json')),
-                      object_pairs_hook=OrderedDict)
-
-    emojis = config_data["emojis"]
-    emoji_map = {
-        "YES": "On",
-        "NO": "Off",
-        "minus_one" : "-1",
-        "minus_point_five" : "-0.5",
-        "zero_five" : "0.5",
-        "one_five" : "1.5"
-    }
-
-    customs_channel = get_custom_games()
-
-    for rule, rule_options in rules.items():
-        rule_message = await discord_client.send_message(customs_channel,
-                                                 content=rule_options['input'])
-        # Save this rule's message ID in the dict for later
-        rules[rule]['message_id'] = rule_message.id
-
-        for emoji in rule_options['emojis']:
-            if isinstance(emoji, int):
-                if emoji == 10:
-                    emoji_to_add = "\U0001F51F"
-                else:
-                    emoji_to_add = str(emoji) + "\U000020e3"
-            else:
-                emoji_to_add = discord.utils.get(discord_client.get_all_emojis(),
-                                                 id=emojis[emoji])
-            await discord_client.add_reaction(rule_message, emoji_to_add)
-
-    template_timer = "Timer: {}"
-    default_timer_message = template_timer.format("03:00")
-    timer_message = await discord_client.send_message(customs_channel,
-                                               content= default_timer_message)
-    
-    here_ping = await discord_client.send_message(customs_channel,
-                                          content="@here")
-
-    time_to_post = datetime.datetime.now() + datetime.timedelta(seconds=180)
-
-    while datetime.datetime.now() < time_to_post:
-        countdown_timer = time_to_post - datetime.datetime.now()
-        countdown_timer_string = get_countdown_string(countdown_timer)
-        await asyncio.sleep(1)
-        new_message = template_timer.format(countdown_timer_string)
-        await discord_client.edit_message(timer_message, new_message)
-
-    await discord_client.delete_message(here_ping)
-    await discord_client.delete_message(timer_message)
-
-    gamemode_message = ""
-    announcement_str = "Vote over! The game mode, not including options with default values, will be:\n"
-
-    for rule, rule_options in rules.items():
-        vote_message = await discord_client.get_message(customs_channel,
-                                                rules[rule]['message_id'])
-        winning_emoji = most_reactions(vote_message)
-
-        if isinstance(winning_emoji, str):
-            if len(winning_emoji) > 1:
-                emoji_str = winning_emoji[0]  # Unicode to int
-            else:
-                emoji_str = "10"
-        else:
-            emoji_str = emoji_map[winning_emoji.name]
-
-        if emoji_str != rules[rule]['default']:
-            if len(gamemode_message) != 0:
-                gamemode_message += " / "
-            this_output = rules[rule]['output'] + ": {}".format(emoji_str) + rules[rule]['units']
-            gamemode_message += this_output
-
-        await discord_client.delete_message(vote_message)
-
-    await discord_client.send_message(customs_channel,
-                              content= announcement_str + gamemode_message)
 
 @discord_client.command(name='clear', pass_context=True)
 @hoster_only()
