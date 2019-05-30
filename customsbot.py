@@ -540,7 +540,7 @@ async def perspective_vote(ctx):
 
     customs_channel = get_custom_games()
 
-    perspective_vote_message = ("Which perspective should we host today's games on?"
+    perspective_vote_message = ("Which perspective should the next game be played on?"
                            "\nTimer: {}")
     default_perspective_message = perspective_vote_message.format("02:00")
     perspective_message = await discord_client.send_message(customs_channel,
