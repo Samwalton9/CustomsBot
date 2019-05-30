@@ -504,7 +504,7 @@ async def map_vote(ctx, *args):
                                           content="@here")
 
     await discord_client.send_message(message_channel,
-                              content= "Map vote successfully posted.")
+                              content= "Map vote successfully posted." + maps_for_vote)
     log_command(message_object, "Map vote")
 
     time_to_post = datetime.datetime.now() + datetime.timedelta(seconds=120)
@@ -527,6 +527,7 @@ async def map_vote(ctx, *args):
     map_message_finished = "Map vote over. Result: {}".format(map_result)
 
     await discord_client.edit_message(sent_map_message, map_message_finished)
+    await discord_client.send_message(message_channel, map_message_finished)
     await discord_client.delete_message(here_ping)
 
 @discord_client.command(name='perspectivevote', aliases=['pv'], pass_context=True)
