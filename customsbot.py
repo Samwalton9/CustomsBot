@@ -504,7 +504,7 @@ async def map_vote(ctx, *args):
                                           content="@here")
 
     await discord_client.send_message(message_channel,
-                              content= "Map vote successfully posted.")
+                              content= "Map vote successfully posted." + maps_for_vote)
     log_command(message_object, "Map vote")
 
     time_to_post = datetime.datetime.now() + datetime.timedelta(seconds=120)
@@ -527,6 +527,7 @@ async def map_vote(ctx, *args):
     map_message_finished = "Map vote over. Result: {}".format(map_result)
 
     await discord_client.edit_message(sent_map_message, map_message_finished)
+    await discord_client.send_message(message_channel, map_message_finished)
     await discord_client.delete_message(here_ping)
 
 @discord_client.command(name='perspectivevote', aliases=['pv'], pass_context=True)
@@ -539,7 +540,7 @@ async def perspective_vote(ctx):
 
     customs_channel = get_custom_games()
 
-    perspective_vote_message = ("Which perspective should we host today's games on?"
+    perspective_vote_message = ("Which perspective should the next game be played on?"
                            "\nTimer: {}")
     default_perspective_message = perspective_vote_message.format("02:00")
     perspective_message = await discord_client.send_message(customs_channel,
