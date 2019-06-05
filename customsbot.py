@@ -580,6 +580,61 @@ async def perspective_vote(ctx):
     await discord_client.edit_message(perspective_message, perspective_message_finished)
 
 
+@discord_client.command(name='warmodewepsvote', aliases=['wmw'], pass_context=True)
+@hoster_only()
+async def perspective_vote(ctx):
+    """
+    Starts a vote which Warmode Weapons to implement in the next game.
+    """
+
+    customs_channel = get_custom_games()
+    warmodeweps_message = ("Which weapons should we include in war mode?")
+    warmodeweps_list = ("\n1. Default"
+                        "\n2. Bomb Kit (Throwables)"
+                        "\n3. VSS Kit"
+                        "\n4. OP Kit (Crate weapons)"
+                        "\n5. Sniper Kit"
+                        "\n")
+    warmodeweps_vote_message = warmodeweps_message + warmodeweps_list + ("\nTimer: {}")
+    default_warmodeweps_message = warmodeweps_vote_message.format("02:00")
+    warmodeweps_message = await discord_client.send_message(customs_channel,
+                                               content= default_warmodeweps_message)
+    warmodeweps_emojis = ['1','2', '3', '4', '5',]
+
+    for warmodeweps_int in warmodeweps_emojis:
+        emoji = str(warmodeweps_int) + "\U000020E3"
+        await discord_client.add_reaction(warmodeweps_message, emoji)
+    here_ping = await discord_client.send_message(customs_channel,
+                                          content="@here")
+
+    message_channel = ctx.message.channel
+    await discord_client.send_message(message_channel,
+                              "Warmode Wepons vote successfully posted." + warmodeweps_list)
+    log_command(ctx.message, "Warmode Wepons vote")
+    time_to_post = datetime.datetime.now() + datetime.timedelta(seconds=120)
+
+    while datetime.datetime.now() < time_to_post:
+        countdown_timer = time_to_post - datetime.datetime.now()
+        countdown_timer_string = get_countdown_string(countdown_timer)
+        await asyncio.sleep(1)
+        new_message = warmodeweps_vote_message.format(countdown_timer_string)
+        await discord_client.edit_message(warmodeweps_message, new_message)
+
+    warmodeweps_message = await discord_client.get_message(customs_channel,
+                                              warmodeweps_message.id)
+    await discord_client.clear_reactions(warmodeweps_message)
+    warmodeweps_selected = most_reactions(warmodeweps_message)
+
+    warmodeweps_result = warmodeweps_selected
+
+    warmodeweps_message_finished = "Warmode Wepons vote over. \nResult: {}".format(warmodeweps_result)
+
+    await discord_client.delete_message(here_ping)
+
+    await discord_client.edit_message(warmodeweps_message, warmodeweps_message_finished)
+    await discord_client.send_message(message_channel, warmodeweps_message_finished)
+
+
 @discord_client.command(name='password', pass_context=True)
 @hoster_only()
 async def password_countdown(ctx, password, *args):
